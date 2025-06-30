@@ -113,6 +113,8 @@ function broadcastMessage(message) {
 
 // HTTP ve WebSocket sunucusunu 8080 portunda dinlemeye başla
 const PORT = 8080;
-server.listen(PORT, () => {
+const HOST = '0.0.0.0'; // Tüm IP adreslerinden erişim için
+server.listen(PORT, HOST, () => {
   console.log(`Sohbet sunucusu http://localhost:${PORT} adresinde başlatıldı...`);
+  console.log(`Dış erişim için: http://[SUNUCU_IP]:${PORT} adresini kullanın`);
 });
