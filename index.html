@@ -3,62 +3,642 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Docker WebSocket Sohbet</title>
+    <title>Modern Discord Chat</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f0f2f5; }
-        #app-container { width: 90%; max-width: 600px; height: 80vh; background-color: white; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border-radius: 8px; display: flex; flex-direction: column; }
-        h1 { text-align: center; color: #333; padding: 20px; margin: 0; border-bottom: 1px solid #eee; }
-        #chat-window { flex-grow: 1; overflow-y: scroll; padding: 20px; }
-        #chat-window p { margin: 0 0 12px 0; padding: 8px 12px; background-color: #e9e9eb; border-radius: 18px; max-width: 70%; line-height: 1.4; word-wrap: break-word; }
-        #chat-window p.system { background-color: transparent; font-style: italic; color: #888; text-align: center; }
-        #input-area { display: flex; padding: 20px; border-top: 1px solid #eee; }
-        #message-input { flex-grow: 1; border: 1px solid #ccc; border-radius: 20px; padding: 10px 15px; font-size: 16px; }
-        #message-input:focus { outline: none; border-color: #007bff; }
-        #send-button { border: none; background-color: #007bff; color: white; font-size: 16px; padding: 10px 20px; margin-left: 10px; border-radius: 20px; cursor: pointer; }
-        #send-button:hover { background-color: #0056b3; }
+        :root {
+            --primary-bg: #1e1f22;
+            --secondary-bg: #2b2d31;
+            --tertiary-bg: #313338;
+            --channel-bg: #404249;
+            --hover-bg: rgba(79, 84, 92, 0.16);
+            --text-primary: #f2f3f5;
+            --text-secondary: #b5bac1;
+            --text-muted: #80848e;
+            --accent-primary: #5865f2;
+            --accent-hover: #4752c4;
+            --accent-active: #3c45a5;
+            --green: #23a559;
+            --red: #f23f43;
+            --yellow: #f0b232;
+            --border-subtle: rgba(79, 84, 92, 0.48);
+            --shadow-elevation-low: 0 1px 0 rgba(4, 4, 5, 0.2), 0 1.5px 0 rgba(6, 6, 7, 0.05), 0 2px 0 rgba(4, 4, 5, 0.05);
+            --shadow-elevation-medium: 0 4px 4px rgba(0, 0, 0, 0.16);
+            --shadow-elevation-high: 0 8px 16px rgba(0, 0, 0, 0.24);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--primary-bg);
+            color: var(--text-primary);
+            height: 100vh;
+            overflow: hidden;
+            font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+        }
+
+        #app-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background-color: var(--primary-bg);
+        }
+
+        #header {
+            background-color: var(--secondary-bg);
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-subtle);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: var(--shadow-elevation-low);
+            backdrop-filter: blur(8px);
+        }
+
+        #header-left {
+            display: flex;
+            align-items: center;
+        }
+
+        #header h1 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            margin: 0;
+        }
+
+        #header h1::before {
+            content: "#";
+            color: var(--text-muted);
+            margin-right: 8px;
+            font-weight: 400;
+            font-size: 20px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .header-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s ease;
+        }
+
+        .header-icon:hover {
+            background-color: var(--hover-bg);
+            color: var(--text-secondary);
+        }
+
+        #online-count {
+            font-size: 12px;
+            color: var(--text-muted);
+            padding: 2px 8px;
+            background: var(--tertiary-bg);
+            border-radius: 12px;
+            font-weight: 500;
+        }
+
+        #chat-window {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px 0;
+            background-color: var(--primary-bg);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        #chat-window::-webkit-scrollbar {
+            width: 14px;
+        }
+
+        #chat-window::-webkit-scrollbar-track {
+            background-color: transparent;
+        }
+
+        #chat-window::-webkit-scrollbar-thumb {
+            background-color: var(--tertiary-bg);
+            border: 3px solid var(--primary-bg);
+            border-radius: 14px;
+            transition: background-color 0.15s ease;
+        }
+
+        #chat-window::-webkit-scrollbar-thumb:hover {
+            background-color: var(--channel-bg);
+        }
+
+        .message {
+            display: flex;
+            padding: 4px 16px 4px 72px;
+            position: relative;
+            transition: background-color 0.1s ease-out;
+            border-radius: 0;
+            margin-bottom: 0;
+            min-height: 44px;
+        }
+
+        .message:hover {
+            background-color: var(--hover-bg);
+        }
+
+        .message.grouped {
+            margin-top: 0;
+            padding-top: 2px;
+            padding-bottom: 2px;
+        }
+
+        .message.new-group {
+            margin-top: 20px;
+            padding-left: 16px;
+        }
+
+        .message-avatar {
+            position: absolute;
+            left: 16px;
+            top: 4px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent-primary), #7289da);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+            color: white;
+            flex-shrink: 0;
+            cursor: pointer;
+            transition: transform 0.15s ease;
+        }
+
+        .message-avatar:hover {
+            transform: scale(1.05);
+        }
+
+        .message-content {
+            flex: 1;
+            min-width: 0;
+            padding-right: 48px;
+        }
+
+        .message-header {
+            display: flex;
+            align-items: baseline;
+            margin-bottom: 2px;
+            gap: 8px;
+        }
+
+        .message-username {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 16px;
+            cursor: pointer;
+            transition: color 0.15s ease;
+        }
+
+        .message-username:hover {
+            text-decoration: underline;
+        }
+
+        .message-timestamp {
+            font-size: 12px;
+            color: var(--text-muted);
+            font-weight: 400;
+            line-height: 1.375;
+        }
+
+        .message-text {
+            font-size: 16px;
+            line-height: 1.375;
+            color: var(--text-primary);
+            word-wrap: break-word;
+            white-space: pre-wrap;
+        }
+
+        .system-message {
+            color: var(--text-muted);
+            font-size: 14px;
+            text-align: center;
+            margin: 16px auto;
+            background-color: var(--tertiary-bg);
+            padding: 8px 16px;
+            border-radius: 16px;
+            max-width: fit-content;
+            font-weight: 500;
+        }
+
+        #input-area {
+            padding: 24px;
+            background-color: var(--primary-bg);
+        }
+
+        #input-container {
+            background-color: var(--channel-bg);
+            border-radius: 8px;
+            padding: 11px 16px;
+            display: flex;
+            align-items: flex-end;
+            position: relative;
+            border: 1px solid transparent;
+            transition: border-color 0.15s ease;
+        }
+
+        #input-container:focus-within {
+            border-color: var(--accent-primary);
+        }
+
+        #message-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            font-size: 16px;
+            line-height: 1.375;
+            resize: none;
+            outline: none;
+            font-family: inherit;
+            min-height: 22px;
+            max-height: 144px;
+        }
+
+        #message-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        #send-button {
+            background: var(--accent-primary);
+            border: none;
+            border-radius: 4px;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            padding: 8px 16px;
+            margin-left: 12px;
+            height: 32px;
+            min-width: 60px;
+            transition: all 0.15s ease;
+            box-shadow: var(--shadow-elevation-low);
+        }
+
+        #send-button:hover:not(:disabled) {
+            background: var(--accent-hover);
+            box-shadow: var(--shadow-elevation-medium);
+            transform: translateY(-1px);
+        }
+
+        #send-button:active:not(:disabled) {
+            background: var(--accent-active);
+            transform: translateY(0);
+            box-shadow: var(--shadow-elevation-low);
+        }
+
+        #send-button:disabled {
+            background: var(--text-muted);
+            cursor: not-allowed;
+            opacity: 0.5;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .typing-indicator {
+            color: var(--text-muted);
+            font-size: 13px;
+            font-weight: 500;
+            padding: 0 24px;
+            margin-bottom: 8px;
+            opacity: 0.8;
+        }
+
+        @keyframes messageSlideIn {
+            from { 
+                opacity: 0; 
+                transform: translateY(8px) scale(0.98);
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .message.new {
+            animation: messageSlideIn 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .online-indicator {
+            position: absolute;
+            bottom: -2px;
+            right: -2px;
+            width: 14px;
+            height: 14px;
+            background-color: var(--green);
+            border: 3px solid var(--primary-bg);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        .message-avatar {
+            position: relative;
+        }
+
+        .message-reactions {
+            display: flex;
+            gap: 4px;
+            margin-top: 4px;
+            flex-wrap: wrap;
+        }
+
+        .reaction {
+            background: var(--tertiary-bg);
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            padding: 2px 6px;
+            font-size: 12px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .reaction:hover {
+            background: var(--hover-bg);
+            border-color: var(--text-muted);
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            #input-area {
+                padding: 16px;
+            }
+            
+            .message {
+                padding-left: 16px;
+                padding-right: 16px;
+            }
+            
+            .message.new-group {
+                padding-left: 16px;
+            }
+            
+            .message-avatar {
+                width: 32px;
+                height: 32px;
+                font-size: 12px;
+            }
+        }
+
+        /* Dark mode enhancements */
+        @media (prefers-color-scheme: dark) {
+            body {
+                color-scheme: dark;
+            }
+        }
     </style>
 </head>
 <body>
     <div id="app-container">
-        <h1>Docker Sohbet Odası</h1>
+        <div id="header">
+            <div id="header-left">
+                <h1>genel-sohbet</h1>
+            </div>
+            <div class="header-actions">
+                <div id="online-count">● 1 çevrimiçi</div>
+                <button class="header-icon" title="Ses kanalına katıl">🎤</button>
+                <button class="header-icon" title="Ayarlar">⚙️</button>
+            </div>
+        </div>
+        
         <div id="chat-window"></div>
+        
         <div id="input-area">
-            <input type="text" id="message-input" placeholder="Mesajınızı yazın ve Enter'a basın...">
-            <button id="send-button">Gönder</button>
+            <div id="input-container">
+                <textarea id="message-input" placeholder="#genel-sohbet kanalında mesaj gönder..." rows="1"></textarea>
+                <button id="send-button">Gönder</button>
+            </div>
         </div>
     </div>
 
     <script>
         const socket = new WebSocket(`ws://${window.location.host}`);
-
         const chatWindow = document.getElementById('chat-window');
         const messageInput = document.getElementById('message-input');
         const sendButton = document.getElementById('send-button');
+        const onlineCount = document.getElementById('online-count');
+        
+        let userColors = new Map();
+        let messageId = 0;
+        let lastMessageUser = null;
+        let connectedUsers = 1;
 
-        const addMessage = (message, type = 'user') => {
-            const p = document.createElement('p');
-            if(type === 'system') p.classList.add('system');
-            p.textContent = message;
-            chatWindow.appendChild(p);
-            chatWindow.scrollTop = chatWindow.scrollHeight;
+        const userColorPalette = [
+            '#5865f2', '#57f287', '#fee75c', '#eb459e', 
+            '#ed4245', '#ff7a00', '#00d166', '#00b8ff',
+            '#7289da', '#99aab5', '#f04747', '#43b581',
+            '#faa61a', '#9c84ef', '#36393f', '#2c2f33'
+        ];
+
+        const generateUserColor = (username) => {
+            if (!userColors.has(username)) {
+                const colorIndex = Array.from(userColors.keys()).length % userColorPalette.length;
+                userColors.set(username, userColorPalette[colorIndex]);
+            }
+            return userColors.get(username);
         };
 
-        socket.onopen = () => addMessage('Sunucuya bağlanıldı.', 'system');
-        socket.onmessage = (event) => addMessage(event.data);
-        socket.onclose = () => addMessage('Sunucu bağlantısı kesildi.', 'system');
+        const getInitials = (username) => {
+            return username.split(' ')
+                .map(word => word[0])
+                .join('')
+                .toUpperCase()
+                .slice(0, 2) || '?';
+        };
 
-        const sendMessage = () => {
-            const message = messageInput.value;
-            if (message.trim()) {
-                socket.send(message);
-                messageInput.value = '';
+        const formatTime = (date) => {
+            const now = new Date();
+            const isToday = date.toDateString() === now.toDateString();
+            
+            if (isToday) {
+                return date.toLocaleTimeString('tr-TR', { 
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                });
+            } else {
+                return date.toLocaleDateString('tr-TR', { 
+                    day: '2-digit',
+                    month: '2-digit',
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                });
             }
         };
 
+        const shouldGroupMessage = (username, timestamp) => {
+            if (!lastMessageUser) return false;
+            
+            const timeDiff = timestamp - lastMessageUser.timestamp;
+            const isSameUser = username === lastMessageUser.username;
+            const isWithinTimeLimit = timeDiff < 300000; // 5 minutes
+            
+            return isSameUser && isWithinTimeLimit;
+        };
+
+        const addMessage = (content, username = null, type = 'user', timestamp = new Date()) => {
+            if (type === 'system') {
+                const systemDiv = document.createElement('div');
+                systemDiv.className = 'system-message';
+                systemDiv.textContent = content;
+                chatWindow.appendChild(systemDiv);
+            } else {
+                const isGrouped = shouldGroupMessage(username, timestamp);
+                
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message new ${isGrouped ? 'grouped' : 'new-group'}`;
+                
+                if (!isGrouped) {
+                    const avatarDiv = document.createElement('div');
+                    avatarDiv.className = 'message-avatar';
+                    avatarDiv.style.background = `linear-gradient(135deg, ${generateUserColor(username || 'Kullanıcı')}, ${generateUserColor(username || 'Kullanıcı')}aa)";
+                    avatarDiv.textContent = getInitials(username || 'Kullanıcı');
+                    avatarDiv.title = username || 'Kullanıcı';
+                    
+                    const onlineIndicator = document.createElement('div');
+                    onlineIndicator.className = 'online-indicator';
+                    avatarDiv.appendChild(onlineIndicator);
+                    
+                    messageDiv.appendChild(avatarDiv);
+                }
+                
+                const contentDiv = document.createElement('div');
+                contentDiv.className = 'message-content';
+                
+                if (!isGrouped) {
+                    const headerDiv = document.createElement('div');
+                    headerDiv.className = 'message-header';
+                    
+                    const usernameSpan = document.createElement('span');
+                    usernameSpan.className = 'message-username';
+                    usernameSpan.textContent = username || 'Kullanıcı';
+                    usernameSpan.style.color = generateUserColor(username || 'Kullanıcı');
+                    
+                    const timestampSpan = document.createElement('span');
+                    timestampSpan.className = 'message-timestamp';
+                    timestampSpan.textContent = formatTime(timestamp);
+                    
+                    headerDiv.appendChild(usernameSpan);
+                    headerDiv.appendChild(timestampSpan);
+                    contentDiv.appendChild(headerDiv);
+                }
+                
+                const textDiv = document.createElement('div');
+                textDiv.className = 'message-text';
+                textDiv.textContent = content;
+                
+                contentDiv.appendChild(textDiv);
+                messageDiv.appendChild(contentDiv);
+                
+                chatWindow.appendChild(messageDiv);
+                
+                lastMessageUser = { username, timestamp };
+            }
+            
+            // Smooth scroll to bottom
+            chatWindow.scrollTo({
+                top: chatWindow.scrollHeight,
+                behavior: 'smooth'
+            });
+        };
+
+        const updateOnlineCount = (count) => {
+            connectedUsers = count;
+            onlineCount.textContent = `● ${count} çevrimiçi`;
+        };
+
+        const autoResizeTextarea = () => {
+            messageInput.style.height = 'auto';
+            const maxHeight = 144;
+            const newHeight = Math.min(messageInput.scrollHeight, maxHeight);
+            messageInput.style.height = newHeight + 'px';
+        };
+
+        socket.onopen = () => {
+            addMessage('Discord sunucusuna bağlanıldı! 🎉', null, 'system');
+            updateOnlineCount(connectedUsers);
+        };
+
+        socket.onmessage = (event) => {
+            try {
+                const data = JSON.parse(event.data);
+                const timestamp = data.timestamp ? new Date(data.timestamp) : new Date();
+                addMessage(data.message, data.username, 'user', timestamp);
+            } catch (e) {
+                addMessage(event.data, 'Misafir');
+            }
+        };
+
+        socket.onclose = () => {
+            addMessage('Sunucu bağlantısı kesildi. Yeniden bağlanmaya çalışılıyor...', null, 'system');
+            updateOnlineCount(0);
+        };
+
+        const sendMessage = () => {
+            const message = messageInput.value.trim();
+            if (message && socket.readyState === WebSocket.OPEN) {
+                const messageData = {
+                    message: message,
+                    username: 'Sen',
+                    timestamp: new Date().toISOString()
+                };
+                
+                socket.send(JSON.stringify(messageData));
+                messageInput.value = '';
+                autoResizeTextarea();
+                sendButton.disabled = true;
+            }
+        };
+
+        // Event listeners
         sendButton.addEventListener('click', sendMessage);
-        messageInput.addEventListener('keypress', (event) => {
-            if (event.key === 'Enter') sendMessage();
+        
+        messageInput.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
         });
+
+        messageInput.addEventListener('input', () => {
+            sendButton.disabled = !messageInput.value.trim();
+            autoResizeTextarea();
+        });
+
+        // Initialize
+        sendButton.disabled = true;
+        
+        // Welcome message
+        setTimeout(() => {
+            addMessage('Discord tarzı modern sohbet odasına hoş geldiniz! 👋', 'Sistem', 'user');
+        }, 1000);
     </script>
 </body>
 </html>

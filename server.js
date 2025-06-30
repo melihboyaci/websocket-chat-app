@@ -39,10 +39,23 @@ wss.on('connection', (ws) => {
     const stringMessage = message.toString();
     console.log(`Gelen mesaj: ${stringMessage}`);
 
+    // Try to parse as JSON, fallback to plain text
+    let messageData;
+    try {
+      messageData = JSON.parse(stringMessage);
+    } catch (e) {
+      // Fallback for plain text messages
+      messageData = {
+        message: stringMessage,
+        username: 'Misafir',
+        timestamp: new Date().toISOString()
+      };
+    }
+
     // Gelen mesajı bağlı olan TÜM istemcilere gönder (broadcast)
     for (const client of clients) {
       if (client.readyState === WebSocket.OPEN) {
-        client.send(stringMessage);
+        client.send(JSON.stringify(messageData));
       }
     }
   });
