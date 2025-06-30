@@ -17,6 +17,17 @@ const server = http.createServer((req, res) => {
       res.writeHead(200, { 'Content-Type': 'text/html' });
       res.end(data);
     });
+  } else if (req.url === '/styles.css' && req.method === 'GET') {
+    const filePath = path.join(__dirname, 'styles.css');
+    fs.readFile(filePath, (err, data) => {
+      if (err) {
+        res.writeHead(500);
+        res.end('Error loading styles.css');
+        return;
+      }
+      res.writeHead(200, { 'Content-Type': 'text/css' });
+      res.end(data);
+    });
   } else {
     // Başka bir sayfa istenirse 404 Hatası döndür
     res.writeHead(404);
