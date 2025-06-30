@@ -27,24 +27,31 @@ const server = http.createServer((req, res) => {
 // WebSocket sunucusunu, yukarıda oluşturduğumuz HTTP sunucusuna entegre et
 const wss = new WebSocket.Server({ server });
 
-const clients = new Set();
+const clients = new Map(); // Changed from Set to Map for better client management
 
 // Yeni bir istemci bağlandığında çalışacak fonksiyon
 wss.on('connection', (ws) => {
-  clients.add(ws);
-  console.log('Yeni bir kullanıcı bağlandı.');
+  const clientId = Date.now() + Math.random(); // Unique client ID
+  clients.set(clientId, { ws, username: null });
+  console.log(`Yeni bir kullanıcı bağlandı. ID: ${clientId}`);
 
   // Bağlı bir istemciden mesaj geldiğinde çalışacak fonksiyon
   ws.on('message', (message) => {
-    const stringMessage = message.toString();
-    console.log(`Gelen mesaj: ${stringMessage}`);
-
     try {
+      const stringMessage = message.toString();
+      console.log(`Gelen mesaj: ${stringMessage}`);
+
       // JSON formatında mesaj parse et
       const messageData = JSON.parse(stringMessage);
       
       // Mesajı doğrula ve zenginleştir
       if (messageData.username && messageData.message) {
+        // Update client username
+        const client = clients.get(clientId);
+        if (client) {
+          client.username = messageData.username;
+        }
+
         const enrichedMessage = {
           username: messageData.username,
           message: messageData.message,
@@ -52,30 +59,57 @@ wss.on('connection', (ws) => {
           channel: messageData.channel || 'genel'
         };
 
-        // Zenginleştirilmiş mesajı tüm istemcilere gönder
+        // Zenginleştirilmiş mesajı tüm aktif istemcilere gönder
         const messageToSend = JSON.stringify(enrichedMessage);
-        for (const client of clients) {
-          if (client.readyState === WebSocket.OPEN) {
-            client.send(messageToSend);
-          }
-        }
+        broadcastMessage(messageToSend);
       }
     } catch (error) {
+      console.error('Mesaj işleme hatası:', error);
       // JSON parse hatası durumunda eski format ile devam et
-      for (const client of clients) {
-        if (client.readyState === WebSocket.OPEN) {
-          client.send(stringMessage);
-        }
-      }
+      broadcastMessage(message.toString());
     }
   });
 
   // Bir istemcinin bağlantısı koptuğunda çalışacak fonksiyon
   ws.on('close', () => {
-    clients.delete(ws);
-    console.log('Bir kullanıcı ayrıldı.');
+    const client = clients.get(clientId);
+    if (client && client.username) {
+      console.log(`Kullanıcı ayrıldı: ${client.username}`);
+    }
+    clients.delete(clientId);
+    console.log(`Bağlantı kapatıldı. ID: ${clientId}`);
+  });
+
+  // Hata durumunda
+  ws.on('error', (error) => {
+    console.error(`WebSocket hatası (ID: ${clientId}):`, error);
+    clients.delete(clientId);
   });
 });
+
+// Tüm aktif istemcilere mesaj gönderme fonksiyonu
+function broadcastMessage(message) {
+  const deadClients = [];
+  
+  for (const [clientId, client] of clients) {
+    try {
+      if (client.ws.readyState === WebSocket.OPEN) {
+        client.ws.send(message);
+      } else {
+        deadClients.push(clientId);
+      }
+    } catch (error) {
+      console.error(`İstemciye mesaj gönderme hatası (ID: ${clientId}):`, error);
+      deadClients.push(clientId);
+    }
+  }
+  
+  // Ölü bağlantıları temizle
+  deadClients.forEach(clientId => {
+    clients.delete(clientId);
+    console.log(`Ölü bağlantı temizlendi. ID: ${clientId}`);
+  });
+}
 
 // HTTP ve WebSocket sunucusunu 8080 portunda dinlemeye başla
 const PORT = 8080;

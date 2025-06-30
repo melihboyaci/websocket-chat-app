@@ -455,6 +455,8 @@
         let ws;
         let username = '';
         let currentChannel = 'genel';
+        let reconnectAttempts = 0;
+        const maxReconnectAttempts = 5;
 
         // DOM Elements
         const loginModal = document.getElementById('loginModal');
@@ -496,52 +498,79 @@
 
         // WebSocket connection
         function connectWebSocket() {
-            ws = new WebSocket(`ws://localhost:8080`);
+            try {
+                ws = new WebSocket(`ws://localhost:8080`);
 
-            ws.onopen = () => {
-                console.log('WebSocket bağlantısı kuruldu');
-                addSystemMessage(`${username} sohbete katıldı!`);
-            };
+                ws.onopen = () => {
+                    console.log('WebSocket bağlantısı kuruldu');
+                    reconnectAttempts = 0;
+                    addSystemMessage(`${username} sohbete katıldı!`);
+                };
 
-            ws.onmessage = (event) => {
-                try {
-                    const data = JSON.parse(event.data);
-                    displayMessage(data);
-                } catch (error) {
-                    // Fallback for plain text messages
-                    displayMessage({
-                        username: 'Anonim',
-                        message: event.data,
-                        timestamp: new Date(),
-                        channel: currentChannel
-                    });
-                }
-            };
+                ws.onmessage = (event) => {
+                    try {
+                        const data = JSON.parse(event.data);
+                        displayMessage(data);
+                    } catch (error) {
+                        console.error('Mesaj parse hatası:', error);
+                        // Fallback for plain text messages
+                        displayMessage({
+                            username: 'Anonim',
+                            message: event.data,
+                            timestamp: new Date(),
+                            channel: currentChannel
+                        });
+                    }
+                };
 
-            ws.onclose = () => {
-                console.log('WebSocket bağlantısı kapandı');
-                addSystemMessage('Bağlantı koptu. Sayfa yenileniyor...');
-                setTimeout(() => location.reload(), 3000);
-            };
+                ws.onclose = (event) => {
+                    console.log('WebSocket bağlantısı kapandı', event);
+                    addSystemMessage('Bağlantı koptu...');
+                    
+                    // Reconnection logic
+                    if (reconnectAttempts < maxReconnectAttempts) {
+                        reconnectAttempts++;
+                        addSystemMessage(`Yeniden bağlanmaya çalışılıyor... (${reconnectAttempts}/${maxReconnectAttempts})`);
+                        setTimeout(() => {
+                            connectWebSocket();
+                        }, 2000 * reconnectAttempts); // Exponential backoff
+                    } else {
+                        addSystemMessage('Bağlantı kurulamadı. Sayfa yenileniyor...');
+                        setTimeout(() => location.reload(), 3000);
+                    }
+                };
 
-            ws.onerror = (error) => {
-                console.error('WebSocket hatası:', error);
-            };
+                ws.onerror = (error) => {
+                    console.error('WebSocket hatası:', error);
+                    addSystemMessage('Bağlantı hatası oluştu.');
+                };
+            } catch (error) {
+                console.error('WebSocket bağlantısı kurulamadı:', error);
+                addSystemMessage('Sunucuya bağlanılamadı. Lütfen daha sonra tekrar deneyin.');
+            }
         }
 
         // Send message
         function sendMessage() {
             const message = messageInput.value.trim();
-            if (message && ws.readyState === WebSocket.OPEN) {
-                const messageData = {
-                    username: username,
-                    message: message,
-                    timestamp: new Date(),
-                    channel: currentChannel
-                };
-                
-                ws.send(JSON.stringify(messageData));
-                messageInput.value = '';
+            if (message && ws && ws.readyState === WebSocket.OPEN) {
+                try {
+                    const messageData = {
+                        username: username,
+                        message: message,
+                        timestamp: new Date(),
+                        channel: currentChannel
+                    };
+                    
+                    ws.send(JSON.stringify(messageData));
+                    messageInput.value = '';
+                } catch (error) {
+                    console.error('Mesaj gönderme hatası:', error);
+                    addSystemMessage('Mesaj gönderilemedi. Bağlantı kontrol ediliyor...');
+                }
+            } else if (!ws || ws.readyState !== WebSocket.OPEN) {
+                addSystemMessage('Bağlantı kesildi. Yeniden bağlanmaya çalışılıyor...');
+                connectWebSocket();
             }
         }
 
