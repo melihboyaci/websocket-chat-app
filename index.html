@@ -3,248 +3,613 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Modern Discord Chat</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
+    <title>Discord Clone</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #36393f;
+            color: #dcddde;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .app {
+            display: flex;
+            height: 100vh;
+        }
+
+        /* Server Sidebar */
+        .servers {
+            width: 72px;
+            background-color: #202225;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 12px 0;
+            gap: 8px;
+        }
+
+        .server {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background-color: #5865f2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: border-radius 0.2s ease;
+            font-weight: bold;
+            font-size: 18px;
+            color: white;
+        }
+
+        .server:hover {
+            border-radius: 15px;
+            background-color: #4752c4;
+        }
+
+        .server.active {
+            border-radius: 15px;
+        }
+
+        /* Channels Sidebar */
+        .channels {
+            width: 240px;
+            background-color: #2f3136;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .server-header {
+            height: 48px;
+            border-bottom: 1px solid #202225;
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .channel-list {
+            flex: 1;
+            padding: 16px 0;
+        }
+
+        .channel-category {
+            padding: 16px 16px 4px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #8e9297;
+            text-transform: uppercase;
+        }
+
+        .channel {
+            padding: 6px 16px;
+            margin: 1px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 16px;
+            color: #8e9297;
+        }
+
+        .channel:hover {
+            background-color: #3c3f44;
+            color: #dcddde;
+        }
+
+        .channel.active {
+            background-color: #393c43;
+            color: white;
+        }
+
+        .channel::before {
+            content: '#';
+            font-weight: bold;
+            color: #8e9297;
+        }
+
+        /* User Panel */
+        .user-panel {
+            height: 52px;
+            background-color: #292b2f;
+            display: flex;
+            align-items: center;
+            padding: 0 8px;
+            gap: 8px;
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: #5865f2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+        }
+
+        .user-info {
+            flex: 1;
+        }
+
+        .username {
+            font-size: 14px;
+            font-weight: 600;
+            color: white;
+        }
+
+        .user-status {
+            font-size: 12px;
+            color: #b9bbbe;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: #36393f;
+        }
+
+        .chat-header {
+            height: 48px;
+            border-bottom: 1px solid #40444b;
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            gap: 8px;
+        }
+
+        .chat-header::before {
+            content: '#';
+            font-weight: bold;
+            color: #8e9297;
+            font-size: 24px;
+        }
+
+        .channel-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: white;
+        }
+
+        /* Messages Area */
+        .messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .message {
+            display: flex;
+            gap: 16px;
+            padding: 2px 0;
+        }
+
+        .message:hover {
+            background-color: rgba(4, 4, 5, 0.07);
+            margin: 0 -16px;
+            padding: 2px 16px;
+        }
+
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #5865f2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .message-content {
+            flex: 1;
+        }
+
+        .message-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 4px;
+        }
+
+        .message-author {
+            font-weight: 500;
+            color: white;
+            font-size: 16px;
+        }
+
+        .message-timestamp {
+            font-size: 12px;
+            color: #72767d;
+        }
+
+        .message-text {
+            color: #dcddde;
+            line-height: 1.375;
+            word-wrap: break-word;
+        }
+
+        /* Message Input */
+        .message-input-container {
+            padding: 16px;
+        }
+
+        .message-input-wrapper {
+            background-color: #40444b;
+            border-radius: 8px;
+            padding: 11px 16px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .message-input {
+            flex: 1;
+            background: none;
+            border: none;
+            outline: none;
+            color: #dcddde;
+            font-size: 16px;
+            font-family: inherit;
+        }
+
+        .message-input::placeholder {
+            color: #72767d;
+        }
+
+        .send-button {
+            background-color: #5865f2;
+            border: none;
+            border-radius: 3px;
+            padding: 8px 16px;
+            color: white;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .send-button:hover {
+            background-color: #4752c4;
+        }
+
+        .send-button:disabled {
+            background-color: #4f545c;
+            cursor: not-allowed;
+        }
+
+        /* Login Modal */
+        .login-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.85);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .login-form {
+            background-color: #36393f;
+            padding: 32px;
+            border-radius: 8px;
+            width: 400px;
+        }
+
+        .login-title {
+            font-size: 24px;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 8px;
+            color: white;
+        }
+
+        .login-subtitle {
+            text-align: center;
+            color: #b9bbbe;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: #b9bbbe;
+            margin-bottom: 8px;
+        }
+
+        .form-input {
+            width: 100%;
+            background-color: #202225;
+            border: 1px solid #202225;
+            border-radius: 3px;
+            padding: 10px;
+            color: #dcddde;
+            font-size: 16px;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #5865f2;
+        }
+
+        .login-button {
+            width: 100%;
+            background-color: #5865f2;
+            border: none;
+            border-radius: 3px;
+            padding: 12px;
+            color: white;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .login-button:hover {
+            background-color: #4752c4;
+        }
+
+        /* Scrollbar */
+        .messages::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .messages::-webkit-scrollbar-track {
+            background: #2e3338;
+        }
+
+        .messages::-webkit-scrollbar-thumb {
+            background: #202225;
+            border-radius: 4px;
+        }
+
+        .messages::-webkit-scrollbar-thumb:hover {
+            background: #1e2124;
+        }
+    </style>
 </head>
 <body>
-    <div id="app-container">
-        <div id="header">
-            <div id="header-left">
-                <h1>genel-sohbet</h1>
+    <div id="loginModal" class="login-modal">
+        <div class="login-form">
+            <h2 class="login-title">Sohbete Katıl</h2>
+            <p class="login-subtitle">Kullanıcı adınızı girin</p>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label class="form-label">Kullanıcı Adı</label>
+                    <input type="text" id="usernameInput" class="form-input" placeholder="Kullanıcı adınızı girin" required>
+                </div>
+                <button type="submit" class="login-button">Sohbete Katıl</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="app" id="app" style="display: none;">
+        <!-- Servers Sidebar -->
+        <div class="servers">
+            <div class="server active">DS</div>
+            <div class="server">G1</div>
+            <div class="server">G2</div>
+        </div>
+
+        <!-- Channels Sidebar -->
+        <div class="channels">
+            <div class="server-header">Discord Clone</div>
+            <div class="channel-list">
+                <div class="channel-category">Metin Kanalları</div>
+                <div class="channel active" data-channel="genel">genel</div>
+                <div class="channel" data-channel="rastgele">rastgele</div>
+                <div class="channel" data-channel="oyun">oyun</div>
             </div>
-            <div class="header-actions">
-                <div id="online-count">● 1 çevrimiçi</div>
-                <button class="header-icon" title="Ses kanalına katıl">🎤</button>
-                <button class="header-icon" title="Ayarlar">⚙️</button>
+            <div class="user-panel">
+                <div class="user-avatar" id="userAvatar">U</div>
+                <div class="user-info">
+                    <div class="username" id="displayUsername">Kullanıcı</div>
+                    <div class="user-status">Çevrimiçi</div>
+                </div>
             </div>
         </div>
-        
-        <div id="chat-window"></div>
-        
-        <div id="input-area">
-            <div id="input-container">
-                <textarea id="message-input" placeholder="#genel-sohbet kanalında mesaj gönder..." rows="1"></textarea>
-                <button id="send-button">Gönder</button>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="chat-header">
+                <span class="channel-name" id="currentChannelName">genel</span>
+            </div>
+            <div class="messages" id="messages"></div>
+            <div class="message-input-container">
+                <div class="message-input-wrapper">
+                    <input type="text" class="message-input" id="messageInput" placeholder="#genel kanalına mesaj gönder">
+                    <button class="send-button" id="sendButton">Gönder</button>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        const socket = new WebSocket(`ws://${window.location.host}`);
-        const chatWindow = document.getElementById('chat-window');
-        const messageInput = document.getElementById('message-input');
-        const sendButton = document.getElementById('send-button');
-        const onlineCount = document.getElementById('online-count');
-        
-        let userColors = new Map();
-        let messageId = 0;
-        let lastMessageUser = null;
-        let connectedUsers = 1;
+        let ws;
+        let username = '';
+        let currentChannel = 'genel';
 
-        const userColorPalette = [
-            '#5865f2', '#57f287', '#fee75c', '#eb459e', 
-            '#ed4245', '#ff7a00', '#00d166', '#00b8ff',
-            '#7289da', '#99aab5', '#f04747', '#43b581',
-            '#faa61a', '#9c84ef', '#36393f', '#2c2f33'
-        ];
+        // DOM Elements
+        const loginModal = document.getElementById('loginModal');
+        const app = document.getElementById('app');
+        const loginForm = document.getElementById('loginForm');
+        const usernameInput = document.getElementById('usernameInput');
+        const messages = document.getElementById('messages');
+        const messageInput = document.getElementById('messageInput');
+        const sendButton = document.getElementById('sendButton');
+        const displayUsername = document.getElementById('displayUsername');
+        const userAvatar = document.getElementById('userAvatar');
+        const currentChannelName = document.getElementById('currentChannelName');
+        const channels = document.querySelectorAll('.channel');
 
-        const generateUserColor = (username) => {
-            if (!userColors.has(username)) {
-                const colorIndex = Array.from(userColors.keys()).length % userColorPalette.length;
-                userColors.set(username, userColorPalette[colorIndex]);
+        // Login functionality
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            username = usernameInput.value.trim();
+            if (username) {
+                displayUsername.textContent = username;
+                userAvatar.textContent = username.charAt(0).toUpperCase();
+                loginModal.style.display = 'none';
+                app.style.display = 'flex';
+                connectWebSocket();
             }
-            return userColors.get(username);
-        };
+        });
 
-        const getInitials = (username) => {
-            return username.split(' ')
-                .map(word => word[0])
-                .join('')
-                .toUpperCase()
-                .slice(0, 2) || '?';
-        };
-
-        const formatTime = (date) => {
-            const now = new Date();
-            const isToday = date.toDateString() === now.toDateString();
-            
-            if (isToday) {
-                return date.toLocaleTimeString('tr-TR', { 
-                    hour: '2-digit', 
-                    minute: '2-digit' 
-                });
-            } else {
-                return date.toLocaleDateString('tr-TR', { 
-                    day: '2-digit',
-                    month: '2-digit',
-                    hour: '2-digit', 
-                    minute: '2-digit' 
-                });
-            }
-        };
-
-        const shouldGroupMessage = (username, timestamp) => {
-            if (!lastMessageUser) return false;
-            
-            const timeDiff = timestamp - lastMessageUser.timestamp;
-            const isSameUser = username === lastMessageUser.username;
-            const isWithinTimeLimit = timeDiff < 300000; // 5 minutes
-            
-            return isSameUser && isWithinTimeLimit;
-        };
-
-        const addMessage = (content, username = null, type = 'user', timestamp = new Date()) => {
-            if (type === 'system') {
-                const systemDiv = document.createElement('div');
-                systemDiv.className = 'system-message';
-                systemDiv.textContent = content;
-                chatWindow.appendChild(systemDiv);
-            } else {
-                const isGrouped = shouldGroupMessage(username, timestamp);
-                
-                const messageDiv = document.createElement('div');
-                messageDiv.className = `message new ${isGrouped ? 'grouped' : 'new-group'}`;
-                
-                if (!isGrouped) {
-                    const avatarDiv = document.createElement('div');
-                    avatarDiv.className = 'message-avatar';
-                    avatarDiv.style.background = `linear-gradient(135deg, ${generateUserColor(username || 'Kullanıcı')}, ${generateUserColor(username || 'Kullanıcı')}aa)";
-                    avatarDiv.textContent = getInitials(username || 'Kullanıcı');
-                    avatarDiv.title = username || 'Kullanıcı';
-                    
-                    const onlineIndicator = document.createElement('div');
-                    onlineIndicator.className = 'online-indicator';
-                    avatarDiv.appendChild(onlineIndicator);
-                    
-                    messageDiv.appendChild(avatarDiv);
-                }
-                
-                const contentDiv = document.createElement('div');
-                contentDiv.className = 'message-content';
-                
-                if (!isGrouped) {
-                    const headerDiv = document.createElement('div');
-                    headerDiv.className = 'message-header';
-                    
-                    const usernameSpan = document.createElement('span');
-                    usernameSpan.className = 'message-username';
-                    usernameSpan.textContent = username || 'Kullanıcı';
-                    usernameSpan.style.color = generateUserColor(username || 'Kullanıcı');
-                    
-                    const timestampSpan = document.createElement('span');
-                    timestampSpan.className = 'message-timestamp';
-                    timestampSpan.textContent = formatTime(timestamp);
-                    
-                    headerDiv.appendChild(usernameSpan);
-                    headerDiv.appendChild(timestampSpan);
-                    contentDiv.appendChild(headerDiv);
-                }
-                
-                const textDiv = document.createElement('div');
-                textDiv.className = 'message-text';
-                textDiv.textContent = content;
-                
-                contentDiv.appendChild(textDiv);
-                messageDiv.appendChild(contentDiv);
-                
-                chatWindow.appendChild(messageDiv);
-                
-                lastMessageUser = { username, timestamp };
-            }
-            
-            // Smooth scroll to bottom
-            chatWindow.scrollTo({
-                top: chatWindow.scrollHeight,
-                behavior: 'smooth'
+        // Channel switching
+        channels.forEach(channel => {
+            channel.addEventListener('click', () => {
+                channels.forEach(ch => ch.classList.remove('active'));
+                channel.classList.add('active');
+                currentChannel = channel.dataset.channel;
+                currentChannelName.textContent = currentChannel;
+                messageInput.placeholder = `#${currentChannel} kanalına mesaj gönder`;
+                messages.innerHTML = '';
             });
-        };
+        });
 
-        const updateOnlineCount = (count) => {
-            connectedUsers = count;
-            onlineCount.textContent = `● ${count} çevrimiçi`;
-        };
+        // WebSocket connection
+        function connectWebSocket() {
+            ws = new WebSocket(`ws://localhost:8080`);
 
-        const autoResizeTextarea = () => {
-            messageInput.style.height = 'auto';
-            const maxHeight = 144;
-            const newHeight = Math.min(messageInput.scrollHeight, maxHeight);
-            messageInput.style.height = newHeight + 'px';
-        };
+            ws.onopen = () => {
+                console.log('WebSocket bağlantısı kuruldu');
+                addSystemMessage(`${username} sohbete katıldı!`);
+            };
 
-        socket.onopen = () => {
-            addMessage('Discord sunucusuna bağlanıldı! 🎉', null, 'system');
-            updateOnlineCount(connectedUsers);
-        };
+            ws.onmessage = (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    displayMessage(data);
+                } catch (error) {
+                    // Fallback for plain text messages
+                    displayMessage({
+                        username: 'Anonim',
+                        message: event.data,
+                        timestamp: new Date(),
+                        channel: currentChannel
+                    });
+                }
+            };
 
-        socket.onmessage = (event) => {
-            try {
-                const data = JSON.parse(event.data);
-                const timestamp = data.timestamp ? new Date(data.timestamp) : new Date();
-                addMessage(data.message, data.username, 'user', timestamp);
-            } catch (e) {
-                addMessage(event.data, 'Misafir');
-            }
-        };
+            ws.onclose = () => {
+                console.log('WebSocket bağlantısı kapandı');
+                addSystemMessage('Bağlantı koptu. Sayfa yenileniyor...');
+                setTimeout(() => location.reload(), 3000);
+            };
 
-        socket.onclose = () => {
-            addMessage('Sunucu bağlantısı kesildi. Yeniden bağlanmaya çalışılıyor...', null, 'system');
-            updateOnlineCount(0);
-        };
+            ws.onerror = (error) => {
+                console.error('WebSocket hatası:', error);
+            };
+        }
 
-        socket.onerror = (error) => {
-            console.error('WebSocket hatası:', error);
-            addMessage('Bağlantı hatası oluştu.', null, 'system');
-            sendButton.disabled = true;
-        };
-
-        const sendMessage = () => {
+        // Send message
+        function sendMessage() {
             const message = messageInput.value.trim();
-            if (message && socket.readyState === WebSocket.OPEN) {
+            if (message && ws.readyState === WebSocket.OPEN) {
                 const messageData = {
+                    username: username,
                     message: message,
-                    username: 'Sen',
-                    timestamp: new Date().toISOString()
+                    timestamp: new Date(),
+                    channel: currentChannel
                 };
                 
-                socket.send(JSON.stringify(messageData));
+                ws.send(JSON.stringify(messageData));
                 messageInput.value = '';
-                autoResizeTextarea();
-                
-                // Send butonunu geçici olarak devre dışı bırak
-                sendButton.disabled = true;
-                setTimeout(() => {
-                    sendButton.disabled = !messageInput.value.trim();
-                }, 100);
             }
-        };
+        }
+
+        // Display message
+        function displayMessage(data) {
+            if (data.channel && data.channel !== currentChannel) {
+                return; // Don't show messages from other channels
+            }
+
+            const messageElement = document.createElement('div');
+            messageElement.className = 'message';
+
+            const timestamp = new Date(data.timestamp);
+            const timeString = timestamp.toLocaleTimeString('tr-TR', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+
+            messageElement.innerHTML = `
+                <div class="message-avatar">${data.username.charAt(0).toUpperCase()}</div>
+                <div class="message-content">
+                    <div class="message-header">
+                        <span class="message-author">${data.username}</span>
+                        <span class="message-timestamp">Bugün ${timeString}</span>
+                    </div>
+                    <div class="message-text">${escapeHtml(data.message)}</div>
+                </div>
+            `;
+
+            messages.appendChild(messageElement);
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        // Add system message
+        function addSystemMessage(message) {
+            const messageElement = document.createElement('div');
+            messageElement.className = 'message';
+            messageElement.innerHTML = `
+                <div class="message-avatar">🤖</div>
+                <div class="message-content">
+                    <div class="message-header">
+                        <span class="message-author">Sistem</span>
+                        <span class="message-timestamp">Bugün ${new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}</span>
+                    </div>
+                    <div class="message-text">${message}</div>
+                </div>
+            `;
+            messages.appendChild(messageElement);
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        // Escape HTML to prevent XSS
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
 
         // Event listeners
-        sendButton.addEventListener('click', (e) => {
-            e.preventDefault();
-            sendMessage();
-        });
-        
-        messageInput.addEventListener('keydown', (event) => {
-            if (event.key === 'Enter' && !event.shiftKey) {
-                event.preventDefault();
+        sendButton.addEventListener('click', sendMessage);
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
                 sendMessage();
             }
         });
 
-        messageInput.addEventListener('input', () => {
-            const hasText = messageInput.value.trim().length > 0;
-            sendButton.disabled = !hasText || socket.readyState !== WebSocket.OPEN;
-            autoResizeTextarea();
-        });
-
-        // Initialize
-        sendButton.disabled = true;
-        
-        // Welcome message
-        setTimeout(() => {
-            addMessage('Discord tarzı modern sohbet odasına hoş geldiniz! 👋', 'Sistem', 'user');
-        }, 1000);
+        // Auto-focus username input
+        usernameInput.focus();
     </script>
 </body>
 </html>

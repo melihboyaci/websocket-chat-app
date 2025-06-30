@@ -19,4 +19,4 @@ COPY . .
 EXPOSE 8080
 
 # Container çalıştığında çalıştırılacak olan varsayılan komut.
-CMD ["node", "server.js"]
+CMD ["npm", "start"]

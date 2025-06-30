@@ -17,17 +17,6 @@ const server = http.createServer((req, res) => {
       res.writeHead(200, { 'Content-Type': 'text/html' });
       res.end(data);
     });
-  } else if (req.url === '/styles.css' && req.method === 'GET') {
-    const filePath = path.join(__dirname, 'styles.css');
-    fs.readFile(filePath, (err, data) => {
-      if (err) {
-        res.writeHead(500);
-        res.end('Error loading styles.css');
-        return;
-      }
-      res.writeHead(200, { 'Content-Type': 'text/css' });
-      res.end(data);
-    });
   } else {
     // Başka bir sayfa istenirse 404 Hatası döndür
     res.writeHead(404);
@@ -50,23 +39,33 @@ wss.on('connection', (ws) => {
     const stringMessage = message.toString();
     console.log(`Gelen mesaj: ${stringMessage}`);
 
-    // Try to parse as JSON, fallback to plain text
-    let messageData;
     try {
-      messageData = JSON.parse(stringMessage);
-    } catch (e) {
-      // Fallback for plain text messages
-      messageData = {
-        message: stringMessage,
-        username: 'Misafir',
-        timestamp: new Date().toISOString()
-      };
-    }
+      // JSON formatında mesaj parse et
+      const messageData = JSON.parse(stringMessage);
+      
+      // Mesajı doğrula ve zenginleştir
+      if (messageData.username && messageData.message) {
+        const enrichedMessage = {
+          username: messageData.username,
+          message: messageData.message,
+          timestamp: new Date(),
+          channel: messageData.channel || 'genel'
+        };
 
-    // Gelen mesajı bağlı olan TÜM istemcilere gönder (broadcast)
-    for (const client of clients) {
-      if (client.readyState === WebSocket.OPEN) {
-        client.send(JSON.stringify(messageData));
+        // Zenginleştirilmiş mesajı tüm istemcilere gönder
+        const messageToSend = JSON.stringify(enrichedMessage);
+        for (const client of clients) {
+          if (client.readyState === WebSocket.OPEN) {
+            client.send(messageToSend);
+          }
+        }
+      }
+    } catch (error) {
+      // JSON parse hatası durumunda eski format ile devam et
+      for (const client of clients) {
+        if (client.readyState === WebSocket.OPEN) {
+          client.send(stringMessage);
+        }
       }
     }
   });
