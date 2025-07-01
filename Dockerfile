@@ -13,7 +13,7 @@ RUN go mod download
 COPY . .
 
 # Build the application
-RUN go build -o chat-server main.go
+RUN go build -o main .
 
 # Runtime stage
 FROM alpine:latest
@@ -23,9 +23,9 @@ RUN apk --no-cache add ca-certificates
 WORKDIR /root/
 
 # Copy the binary from builder stage
-COPY --from=builder /app/chat-server .
+COPY --from=builder /app/main .
 COPY --from=builder /app/index.html .
 
 EXPOSE 8080
 
-CMD ["./chat-server"]
+CMD ["./main"]

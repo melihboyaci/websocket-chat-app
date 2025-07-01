@@ -103,6 +103,7 @@
             color: #8e9297;
             font-size: 16px;
             transition: all 0.15s;
+            position: relative;
         }
 
         .channel:hover {
@@ -120,9 +121,42 @@
             font-weight: bold;
             color: #8e9297;
             margin-right: 6px;
+            flex-shrink: 0;
         }
 
         .channel.active::before {
+            color: white;
+        }
+
+        .channel-name {
+            flex: 1;
+        }
+
+        /* Notification Badge */
+        .notification-badge {
+            background-color: #f23f42;
+            color: white;
+            border-radius: 10px;
+            padding: 2px 6px;
+            font-size: 12px;
+            font-weight: 600;
+            min-width: 16px;
+            height: 16px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            margin-left: auto;
+        }
+
+        .notification-badge.show {
+            display: flex;
+        }
+
+        .channel.has-notifications {
+            color: white;
+        }
+
+        .channel.has-notifications::before {
             color: white;
         }
 
@@ -192,6 +226,24 @@
             font-size: 16px;
             font-weight: 600;
             color: white;
+        }
+
+        /* Temizle butonu stili */
+        .clear-history-btn {
+            margin-left: auto;
+            background: #4f545c;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            padding: 6px 14px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .clear-history-btn:hover {
+            background: #f23f42;
         }
 
         /* Messages Area */
@@ -423,8 +475,6 @@
         <!-- Servers Sidebar -->
         <div class="servers">
             <div class="server active">DS</div>
-            <div class="server">G1</div>
-            <div class="server">G2</div>
         </div>
 
         <!-- Channels Sidebar -->
@@ -432,9 +482,18 @@
             <div class="server-header">Discord Clone</div>
             <div class="channel-list">
                 <div class="channel-category">Metin Kanalları</div>
-                <div class="channel active" data-channel="genel">genel</div>
-                <div class="channel" data-channel="rastgele">rastgele</div>
-                <div class="channel" data-channel="oyun">oyun</div>
+                <div class="channel active" data-channel="genel">
+                    <span class="channel-name">genel</span>
+                    <span class="notification-badge" data-channel="genel">0</span>
+                </div>
+                <div class="channel" data-channel="rastgele">
+                    <span class="channel-name">rastgele</span>
+                    <span class="notification-badge" data-channel="rastgele">0</span>
+                </div>
+                <div class="channel" data-channel="oyun">
+                    <span class="channel-name">oyun</span>
+                    <span class="notification-badge" data-channel="oyun">0</span>
+                </div>
             </div>
             <div class="user-panel">
                 <div class="user-avatar" id="userAvatar">U</div>
@@ -449,6 +508,7 @@
         <div class="main-content">
             <div class="chat-header">
                 <span class="channel-name" id="currentChannelName">genel</span>
+                <button class="clear-history-btn" id="clearHistoryBtn" title="Geçmişi Temizle">Geçmişi Temizle</button>
             </div>
             <div class="messages" id="messages"></div>
             <div class="message-input-container">
@@ -466,6 +526,13 @@
         let currentChannel = 'genel';
         let reconnectAttempts = 0;
         const maxReconnectAttempts = 5;
+        
+        // Notification system
+        let unreadCounts = {
+            'genel': 0,
+            'rastgele': 0,
+            'oyun': 0
+        };
 
         // DOM Elements
         const loginModal = document.getElementById('loginModal');
@@ -479,6 +546,7 @@
         const userAvatar = document.getElementById('userAvatar');
         const currentChannelName = document.getElementById('currentChannelName');
         const channels = document.querySelectorAll('.channel');
+        const clearHistoryBtn = document.getElementById('clearHistoryBtn');
 
         // Login functionality
         loginForm.addEventListener('submit', (e) => {
@@ -498,12 +566,41 @@
             channel.addEventListener('click', () => {
                 channels.forEach(ch => ch.classList.remove('active'));
                 channel.classList.add('active');
+                
+                const oldChannel = currentChannel;
                 currentChannel = channel.dataset.channel;
                 currentChannelName.textContent = currentChannel;
                 messageInput.placeholder = `#${currentChannel} kanalına mesaj gönder`;
+                
+                // Clear notifications for the current channel
+                clearNotifications(currentChannel);
+                
+                // Clear messages and request recent messages for the new channel
                 messages.innerHTML = '';
+                setTimeout(() => {
+                    requestRecentMessages(currentChannel);
+                }, 100);
             });
         });
+
+        // Request recent messages for a channel
+        function requestRecentMessages(channelName) {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                const requestMessage = {
+                    username: username,
+                    message: `__GET_RECENT_MESSAGES__`,
+                    channel: channelName,
+                    timestamp: new Date()
+                };
+                
+                try {
+                    ws.send(JSON.stringify(requestMessage));
+                    console.log(`Geçmiş mesajlar istendi: ${channelName}`);
+                } catch (error) {
+                    console.error('Geçmiş mesajları isteme hatası:', error);
+                }
+            }
+        }
 
         // WebSocket connection
         function connectWebSocket() {
@@ -518,21 +615,31 @@
                     console.log('WebSocket bağlantısı kuruldu');
                     reconnectAttempts = 0;
                     addSystemMessage(`${username} sohbete katıldı!`);
+                    
+                    // Request recent messages for current channel
+                    setTimeout(() => {
+                        requestRecentMessages(currentChannel);
+                    }, 100);
                 };
 
                 ws.onmessage = (event) => {
-                    try {
-                        const data = JSON.parse(event.data);
-                        displayMessage(data);
-                    } catch (error) {
-                        console.error('Mesaj parse hatası:', error);
-                        // Fallback for plain text messages
-                        displayMessage({
-                            username: 'Anonim',
-                            message: event.data,
-                            timestamp: new Date(),
-                            channel: currentChannel
-                        });
+                    // Birden fazla mesaj tek bir WebSocket mesajında gelebilir (satırlarla ayrılmış)
+                    const lines = event.data.split('\n');
+                    for (const line of lines) {
+                        if (!line.trim()) continue;
+                        try {
+                            const data = JSON.parse(line);
+                            displayMessage(data);
+                        } catch (error) {
+                            console.error('Mesaj parse hatası:', error);
+                            // Fallback for plain text messages
+                            displayMessage({
+                                username: 'Anonim',
+                                message: line,
+                                timestamp: new Date(),
+                                channel: currentChannel
+                            });
+                        }
                     }
                 };
 
@@ -589,40 +696,48 @@
 
         // Display message
         function displayMessage(data) {
-            if (data.channel && data.channel !== currentChannel) {
-                return; // Don't show messages from other channels
+            // Skip special request messages
+            if (data.message === "__GET_RECENT_MESSAGES__") {
+                return;
             }
+            // Only display messages for the current channel or messages without channel info
+            if (!data.channel || data.channel === currentChannel) {
+                const messageElement = document.createElement('div');
+                messageElement.className = 'message';
 
-            const messageElement = document.createElement('div');
-            messageElement.className = 'message';
+                const timestamp = new Date(data.timestamp);
+                const timeString = timestamp.toLocaleTimeString('tr-TR', { 
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                });
 
-            const timestamp = new Date(data.timestamp);
-            const timeString = timestamp.toLocaleTimeString('tr-TR', { 
-                hour: '2-digit', 
-                minute: '2-digit' 
-            });
-
-            messageElement.innerHTML = `
-                <div class="message-avatar">${data.username.charAt(0).toUpperCase()}</div>
-                <div class="message-content">
-                    <div class="message-header">
-                        <span class="message-author">${data.username}</span>
-                        <span class="message-timestamp">Bugün ${timeString}</span>
+                messageElement.innerHTML = `
+                    <div class="message-avatar">${data.username.charAt(0).toUpperCase()}</div>
+                    <div class="message-content">
+                        <div class="message-header">
+                            <span class="message-author">${data.username}</span>
+                            <span class="message-timestamp">Bugün ${timeString}</span>
+                        </div>
+                        <div class="message-text">${escapeHtml(data.message)}</div>
                     </div>
-                    <div class="message-text">${escapeHtml(data.message)}</div>
-                </div>
-            `;
+                `;
 
-            messages.appendChild(messageElement);
-            messages.scrollTop = messages.scrollHeight;
+                messages.appendChild(messageElement);
+                messages.scrollTop = messages.scrollHeight;
+            } else if (data.channel && data.channel !== currentChannel) {
+                // Message is for another channel - add notification
+                if (data.username !== username) { // Don't notify for own messages
+                    addNotification(data.channel);
+                }
+            }
         }
 
-        // Add system message
+        // Add system message function
         function addSystemMessage(message) {
             const messageElement = document.createElement('div');
             messageElement.className = 'message';
             messageElement.innerHTML = `
-                <div class="message-avatar">🤖</div>
+                <div class="message-avatar">!</div>
                 <div class="message-content">
                     <div class="message-header">
                         <span class="message-author">Sistem</span>
@@ -635,12 +750,67 @@
             messages.scrollTop = messages.scrollHeight;
         }
 
+        // Add notification for a channel
+        function addNotification(channelName) {
+            if (unreadCounts[channelName] !== undefined) {
+                unreadCounts[channelName]++;
+                updateNotificationDisplay(channelName);
+            }
+        }
+
+        // Clear notifications for a channel
+        function clearNotifications(channelName) {
+            if (unreadCounts[channelName] !== undefined) {
+                unreadCounts[channelName] = 0;
+                updateNotificationDisplay(channelName);
+            }
+        }
+
+        // Update notification display
+        function updateNotificationDisplay(channelName) {
+            const channel = document.querySelector(`[data-channel="${channelName}"]`);
+            const badge = channel.querySelector('.notification-badge');
+            const count = unreadCounts[channelName];
+
+            if (count > 0) {
+                badge.textContent = count > 99 ? '99+' : count.toString();
+                badge.classList.add('show');
+                channel.classList.add('has-notifications');
+            } else {
+                badge.classList.remove('show');
+                channel.classList.remove('has-notifications');
+            }
+        }
+
         // Escape HTML to prevent XSS
         function escapeHtml(text) {
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
         }
+
+        // Geçmişi Temizle butonu işlevi
+        clearHistoryBtn.addEventListener('click', () => {
+            // Sunucuya POST isteği gönder
+            fetch('/clear-history', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ channel: currentChannel })
+            })
+            .then(res => {
+                if (res.ok) {
+                    messages.innerHTML = '';
+                    addSystemMessage('Geçmiş mesajlar temizlendi.');
+                } else {
+                    addSystemMessage('Geçmiş temizlenemedi.');
+                }
+            })
+            .catch(() => {
+                addSystemMessage('Geçmiş temizlenemedi.');
+            });
+        });
 
         // Event listeners
         sendButton.addEventListener('click', sendMessage);
