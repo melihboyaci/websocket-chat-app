@@ -1,22 +1,31 @@
-# Temel imaj olarak Node.js'in alpine (küçük) sürümünü kullan.
-FROM node:20-alpine
+# Build stage
+FROM golang:1.21-alpine AS builder
 
-# Container içinde uygulamanın çalışacağı /app klasörünü oluştur.
 WORKDIR /app
 
-# Önce sadece package.json dosyasını kopyala. Bu, Docker'ın önbellekleme
-# mekanizmasını verimli kullanır ve bağımlılıklar değişmedikçe
-# `npm install` komutunu tekrar çalıştırmaz.
-COPY package*.json ./
+# Copy go mod files
+COPY go.mod go.sum ./
 
-# package.json'da listelenen bağımlılıkları yükle.
-RUN npm install
+# Download dependencies
+RUN go mod download
 
-# Projedeki geri kalan tüm dosyaları (.js, .html vb.) kopyala.
+# Copy source code
 COPY . .
 
-# Bu container'ın 8080 portunu dış dünyaya açacağını bildir.
+# Build the application
+RUN go build -o chat-server main.go
+
+# Runtime stage
+FROM alpine:latest
+
+RUN apk --no-cache add ca-certificates
+
+WORKDIR /root/
+
+# Copy the binary from builder stage
+COPY --from=builder /app/chat-server .
+COPY --from=builder /app/index.html .
+
 EXPOSE 8080
 
-# Container çalıştığında çalıştırılacak olan varsayılan komut.
-CMD ["npm", "start"]
+CMD ["./chat-server"]

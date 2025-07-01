@@ -1,0 +1,10 @@
+version: '3.8'
+
+services:
+  chat-app:
+    build: .
+    image: websocket-chat-app:golang-v1.0
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+    container_name: websocket-chat-app

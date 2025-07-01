@@ -1,9 +1,8 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Discord Clone</title>
+    <title>WebSocket Chat</title>
+    <meta charset="utf-8">
     <style>
         * {
             margin: 0;
@@ -24,7 +23,7 @@
             height: 100vh;
         }
 
-        /* Server Sidebar */
+        /* Servers Sidebar */
         .servers {
             width: 72px;
             background-color: #202225;
@@ -39,24 +38,21 @@
             width: 48px;
             height: 48px;
             border-radius: 50%;
-            background-color: #5865f2;
+            background-color: #36393f;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            transition: border-radius 0.2s ease;
-            font-weight: bold;
-            font-size: 18px;
-            color: white;
+            transition: all 0.2s;
+            font-weight: 500;
+            font-size: 16px;
         }
 
-        .server:hover {
-            border-radius: 15px;
-            background-color: #4752c4;
-        }
-
+        .server:hover,
         .server.active {
-            border-radius: 15px;
+            border-radius: 16px;
+            background-color: #5865f2;
+            color: white;
         }
 
         /* Channels Sidebar */
@@ -69,37 +65,44 @@
 
         .server-header {
             height: 48px;
-            border-bottom: 1px solid #202225;
+            border-bottom: 2px solid #202225;
             display: flex;
             align-items: center;
             padding: 0 16px;
             font-weight: 600;
             font-size: 16px;
+            color: white;
+            box-shadow: 0 1px 0 rgba(4, 4, 5, 0.2), 0 1.5px 0 rgba(6, 6, 7, 0.05), 0 2px 0 rgba(4, 4, 5, 0.05);
         }
 
         .channel-list {
             flex: 1;
-            padding: 16px 0;
+            padding: 16px 8px;
         }
 
         .channel-category {
-            padding: 16px 16px 4px;
             font-size: 12px;
             font-weight: 600;
-            color: #8e9297;
             text-transform: uppercase;
+            color: #8e9297;
+            margin-bottom: 8px;
+            margin-top: 16px;
+        }
+
+        .channel-category:first-child {
+            margin-top: 0;
         }
 
         .channel {
-            padding: 6px 16px;
-            margin: 1px 8px;
-            border-radius: 4px;
-            cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 8px;
-            font-size: 16px;
+            padding: 6px 8px;
+            margin: 1px 0;
+            border-radius: 4px;
+            cursor: pointer;
             color: #8e9297;
+            font-size: 16px;
+            transition: all 0.15s;
         }
 
         .channel:hover {
@@ -116,6 +119,11 @@
             content: '#';
             font-weight: bold;
             color: #8e9297;
+            margin-right: 6px;
+        }
+
+        .channel.active::before {
+            color: white;
         }
 
         /* User Panel */
@@ -170,6 +178,7 @@
             align-items: center;
             padding: 0 16px;
             gap: 8px;
+            box-shadow: 0 1px 0 rgba(4, 4, 5, 0.2), 0 1.5px 0 rgba(6, 6, 7, 0.05), 0 2px 0 rgba(4, 4, 5, 0.05);
         }
 
         .chat-header::before {
@@ -499,9 +508,9 @@
         // WebSocket connection
         function connectWebSocket() {
             try {
-                // Dinamik WebSocket URL - mevcut sayfa URL'ini kullan
+                // Updated WebSocket URL for Go server
                 const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-                const wsUrl = `${protocol}//${window.location.host}`;
+                const wsUrl = `${protocol}//${window.location.host}/ws`;
                 
                 ws = new WebSocket(wsUrl);
 
