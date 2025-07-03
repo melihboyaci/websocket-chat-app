@@ -15,14 +15,16 @@ services:
     build: .
     image: websocket-chat-app:golang-v1.0
     ports:
-      - "8080:8080"
+      - "80:80"   # HTTP redirect için
+      - "443:443" # HTTPS için
     restart: unless-stopped
     container_name: websocket-chat-app
     depends_on:
       - redis
     environment:
       - REDIS_ADDR=redis:6379
+    volumes:
+      - ./ssl:/app/ssl:ro  # SSL sertifikalarını read-only olarak mount et
 
 volumes:
-  - ./ssl:/app/ssl
   redis_data:

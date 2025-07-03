@@ -341,6 +341,11 @@ func serveHome(w http.ResponseWriter, r *http.Request) {
 
 	// Serve the index.html file
 	indexPath := filepath.Join(".", "index.html")
+	if _, err := os.Stat(indexPath); os.IsNotExist(err) {
+		log.Printf("index.html dosyası bulunamadı: %s", indexPath)
+		http.Error(w, "index.html file not found", http.StatusNotFound)
+		return
+	}
 	http.ServeFile(w, r, indexPath)
 }
 
@@ -383,6 +388,9 @@ func main() {
 	hub := newHub()
 	go hub.run()
 
+	// Static dosyalar için handler ekle
+	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./static/"))))
+
 	http.HandleFunc("/", serveHome)
 	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
 		serveWS(hub, w, r)
@@ -409,37 +417,56 @@ func main() {
 		w.WriteHeader(http.StatusOK)
 	})
 
-	const port = "443"
+	const httpsPort = "443"
+	const httpPort = "80"
 	const host = "0.0.0.0"
 
-	certFile := "./ssl/cloudflare-cert.pem"
-	keyFile := "./ssl/cloudflare-key.pem"
+	// Container içindeki SSL dosya yolları
+	certFile := "/app/ssl/cloudflare-cert.pem"
+	keyFile := "/app/ssl/cloudflare-key.pem"
 
-	// SSL dosyalarını kontrol et ve eksikse detaylı hata ver
+	// SSL dosyalarını kontrol et
 	if err := ensureSSLFiles(certFile, keyFile); err != nil {
-		log.Fatalf("SSL dosya kontrol hatası: %v\nLütfen '%s' ve '%s' dosyalarını doğru şekilde yerleştirin.", err, certFile, keyFile)
+		log.Printf("SSL HATASI: %v", err)
+		log.Printf("HTTPS başlatılamadı. SSL sertifikalarınızı ./ssl/ klasörüne koyduğunuzdan emin olun.")
+
+		// HTTP modunda başlat (fallback)
+		log.Printf("HTTP sohbet sunucusu http://localhost:8080 adresinde başlatıldı...")
+		err := http.ListenAndServe(":8080", nil)
+		if err != nil {
+			log.Fatal("HTTP ListenAndServe hatası: ", err)
+		}
+		return
 	}
 
-	server := &http.Server{
-		Addr:    host + ":" + port,
+	// HTTPS sunucu yapılandırması
+	httpsServer := &http.Server{
+		Addr:    host + ":" + httpsPort,
 		Handler: nil,
 		TLSConfig: &tls.Config{
 			MinVersion: tls.VersionTLS12,
 		},
 	}
 
-	log.Printf("Sohbet sunucusu https://localhost:%s adresinde başlatıldı...", port)
-	log.Printf("Dış erişim için: https://[SUNUCU_IP]:%s adresini kullanın", port)
+	log.Printf("HTTPS sohbet sunucusu https://localhost:%s adresinde başlatıldı...", httpsPort)
+	log.Printf("Dış erişim için: https://melihboyaci.xyz adresini kullanın")
 
-	// (Opsiyonel) HTTP'den HTTPS'e yönlendirme
+	// HTTP'den HTTPS'e yönlendirme sunucusu
 	go func() {
-		http.ListenAndServe(":80", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log.Printf("HTTP -> HTTPS yönlendirme sunucusu :%s portunda başlatıldı", httpPort)
+		err := http.ListenAndServe(":"+httpPort, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			// Host header'ını koruyarak HTTPS'e yönlendir
 			target := "https://" + r.Host + r.URL.RequestURI()
+			log.Printf("HTTP -> HTTPS yönlendirme: %s -> %s", r.URL.String(), target)
 			http.Redirect(w, r, target, http.StatusMovedPermanently)
 		}))
+		if err != nil {
+			log.Printf("HTTP yönlendirme sunucusu hatası: %v", err)
+		}
 	}()
 
-	err := server.ListenAndServeTLS(certFile, keyFile)
+	// HTTPS sunucusunu başlat
+	err := httpsServer.ListenAndServeTLS(certFile, keyFile)
 	if err != nil {
 		log.Fatal("ListenAndServeTLS hatası: ", err)
 	}
