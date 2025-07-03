@@ -24,4 +24,5 @@ services:
       - REDIS_ADDR=redis:6379
 
 volumes:
+  - ./ssl:/app/ssl
   redis_data:
