@@ -611,42 +611,6 @@
             }
         });
 
-        // Channel switching
-        channels.forEach(channel => {
-            channel.addEventListener('click', () => {
-                channels.forEach(ch => ch.classList.remove('active'));
-                channel.classList.add('active');
-                
-                currentChannel = channel.dataset.channel;
-                currentChannelName.textContent = currentChannel;
-                messageInput.placeholder = `#${currentChannel} kanalına mesaj gönder`;
-                
-                clearNotifications(currentChannel);
-                messages.innerHTML = '';
-                
-                setTimeout(() => {
-                    requestRecentMessages(currentChannel);
-                }, 100);
-            });
-        });
-
-        function requestRecentMessages(channelName) {
-            if (ws && ws.readyState === WebSocket.OPEN) {
-                const requestMessage = {
-                    username: username,
-                    message: `__GET_RECENT_MESSAGES__`,
-                    channel: channelName,
-                    timestamp: new Date()
-                };
-                
-                try {
-                    ws.send(JSON.stringify(requestMessage));
-                } catch (error) {
-                    console.error('Geçmiş mesajları isteme hatası:', error);
-                }
-            }
-        }
-
         function connectWebSocket() {
             try {
                 const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -658,10 +622,6 @@
                     console.log('WebSocket bağlantısı kuruldu');
                     reconnectAttempts = 0;
                     addSystemMessage(`${username} sohbete katıldı!`);
-                    
-                    setTimeout(() => {
-                        requestRecentMessages(currentChannel);
-                    }, 100);
                 };
 
                 ws.onmessage = (event) => {
@@ -729,6 +689,48 @@
             }
         }
 
+        // Channel switching
+        channels.forEach(channel => {
+            channel.addEventListener('click', () => {
+                const previousChannel = currentChannel;
+                
+                channels.forEach(ch => ch.classList.remove('active'));
+                channel.classList.add('active');
+                
+                currentChannel = channel.dataset.channel;
+                currentChannelName.textContent = currentChannel;
+                messageInput.placeholder = `#${currentChannel} kanalına mesaj gönder`;
+                
+                clearNotifications(currentChannel);
+                
+                // Only clear and reload messages if switching to a different channel
+                if (previousChannel !== currentChannel) {
+                    messages.innerHTML = '';
+                    
+                    setTimeout(() => {
+                        requestRecentMessages(currentChannel);
+                    }, 100);
+                }
+            });
+        });
+
+        function requestRecentMessages(channelName) {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                const requestMessage = {
+                    username: username,
+                    message: `__GET_RECENT_MESSAGES__`,
+                    channel: channelName,
+                    timestamp: new Date()
+                };
+                
+                try {
+                    ws.send(JSON.stringify(requestMessage));
+                } catch (error) {
+                    console.error('Geçmiş mesajları isteme hatası:', error);
+                }
+            }
+        }
+
         function sendMessage() {
             const message = messageInput.value.trim();
             if (message && ws && ws.readyState === WebSocket.OPEN) {
@@ -774,6 +776,7 @@
                 return;
             }
             
+            // Only display messages for current channel or system messages
             if (!data.channel || data.channel === currentChannel) {
                 const messageElement = document.createElement('div');
                 messageElement.className = 'message';
@@ -798,6 +801,7 @@
                 messages.appendChild(messageElement);
                 messages.scrollTop = messages.scrollHeight;
             } else if (data.channel && data.channel !== currentChannel) {
+                // Add notification for messages in other channels
                 if (data.username !== username) {
                     addNotification(data.channel);
                 }

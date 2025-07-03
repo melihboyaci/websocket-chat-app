@@ -165,8 +165,8 @@ func (h *Hub) run() {
 			h.mutex.Unlock()
 			log.Printf("Yeni kullanıcı bağlandı. ID: %s", client.ID)
 
-			// Send recent messages for the default channel
-			go h.sendRecentMessages(client, "genel")
+			// Remove automatic recent message sending
+			// go h.sendRecentMessages(client, "genel")
 
 		case client := <-h.unregister:
 			h.mutex.Lock()
