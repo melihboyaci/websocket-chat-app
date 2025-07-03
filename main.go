@@ -2,8 +2,10 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -389,14 +391,41 @@ func main() {
 		w.WriteHeader(http.StatusOK)
 	})
 
-	const port = "8080"
+	const port = "443"
 	const host = "0.0.0.0"
 
-	log.Printf("Sohbet sunucusu http://localhost:%s adresinde başlatıldı...", port)
-	log.Printf("Dış erişim için: http://[SUNUCU_IP]:%s adresini kullanın", port)
+	certFile := "./ssl/cloudflare-cert.pem"
+	keyFile := "./ssl/cloudflare-key.pem"
 
-	err := http.ListenAndServe(host+":"+port, nil)
+	// Sertifika ve anahtar dosyalarının varlığını kontrol et
+	if _, err := ioutil.ReadFile(certFile); err != nil {
+		log.Fatalf("Sertifika dosyası okunamadı: %v", err)
+	}
+	if _, err := ioutil.ReadFile(keyFile); err != nil {
+		log.Fatalf("Anahtar dosyası okunamadı: %v", err)
+	}
+
+	server := &http.Server{
+		Addr:    host + ":" + port,
+		Handler: nil,
+		TLSConfig: &tls.Config{
+			MinVersion: tls.VersionTLS12,
+		},
+	}
+
+	log.Printf("Sohbet sunucusu https://localhost:%s adresinde başlatıldı...", port)
+	log.Printf("Dış erişim için: https://[SUNUCU_IP]:%s adresini kullanın", port)
+
+	// (Opsiyonel) HTTP'den HTTPS'e yönlendirme
+	go func() {
+		http.ListenAndServe(":80", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			target := "https://" + r.Host + r.URL.RequestURI()
+			http.Redirect(w, r, target, http.StatusMovedPermanently)
+		}))
+	}()
+
+	err := server.ListenAndServeTLS(certFile, keyFile)
 	if err != nil {
-		log.Fatal("ListenAndServe hatası: ", err)
+		log.Fatal("ListenAndServeTLS hatası: ", err)
 	}
 }
