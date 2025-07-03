@@ -1,4 +1,4 @@
-# WebSocket Chat Application
+# Çeting
 
 A real-time chat application built with Go backend and vanilla JavaScript frontend, featuring a Discord-like interface design.
 
