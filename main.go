@@ -5,7 +5,6 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -361,6 +360,25 @@ func (h *Hub) clearChannelHistory(channel string) error {
 	return nil
 }
 
+func ensureSSLFiles(certFile, keyFile string) error {
+	sslDir := filepath.Dir(certFile)
+	// Klasör yoksa oluştur
+	if _, err := os.Stat(sslDir); os.IsNotExist(err) {
+		if mkerr := os.MkdirAll(sslDir, 0700); mkerr != nil {
+			return fmt.Errorf("SSL klasörü oluşturulamadı: %v", mkerr)
+		}
+	}
+	// Sertifika dosyası var mı?
+	if _, err := os.Stat(certFile); os.IsNotExist(err) {
+		return fmt.Errorf("Sertifika dosyası bulunamadı: %s", certFile)
+	}
+	// Anahtar dosyası var mı?
+	if _, err := os.Stat(keyFile); os.IsNotExist(err) {
+		return fmt.Errorf("Anahtar dosyası bulunamadı: %s", keyFile)
+	}
+	return nil
+}
+
 func main() {
 	hub := newHub()
 	go hub.run()
@@ -397,12 +415,9 @@ func main() {
 	certFile := "./ssl/cloudflare-cert.pem"
 	keyFile := "./ssl/cloudflare-key.pem"
 
-	// Sertifika ve anahtar dosyalarının varlığını kontrol et
-	if _, err := ioutil.ReadFile(certFile); err != nil {
-		log.Fatalf("Sertifika dosyası okunamadı: %v", err)
-	}
-	if _, err := ioutil.ReadFile(keyFile); err != nil {
-		log.Fatalf("Anahtar dosyası okunamadı: %v", err)
+	// SSL dosyalarını kontrol et ve eksikse detaylı hata ver
+	if err := ensureSSLFiles(certFile, keyFile); err != nil {
+		log.Fatalf("SSL dosya kontrol hatası: %v\nLütfen '%s' ve '%s' dosyalarını doğru şekilde yerleştirin.", err, certFile, keyFile)
 	}
 
 	server := &http.Server{
