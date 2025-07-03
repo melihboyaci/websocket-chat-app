@@ -142,6 +142,8 @@ func (h *Hub) sendRecentMessages(client *Client, channel string) {
 		return
 	}
 
+	log.Printf("Kanal %s için %d geçmiş mesaj gönderiliyor", channel, len(messages))
+
 	for _, msg := range messages {
 		messageJSON, err := json.Marshal(msg)
 		if err != nil {
@@ -152,6 +154,7 @@ func (h *Hub) sendRecentMessages(client *Client, channel string) {
 		case client.Send <- messageJSON:
 		default:
 			// Client's send buffer is full, skip this message
+			log.Printf("İstemci gönderim buffer'ı dolu, mesaj atlandı")
 		}
 	}
 }
@@ -342,11 +345,18 @@ func serveHome(w http.ResponseWriter, r *http.Request) {
 
 func (h *Hub) clearChannelHistory(channel string) error {
 	if h.redis == nil {
+		log.Printf("Redis bağlantısı yok, kanal geçmişi temizlenemedi: %s", channel)
 		return nil
 	}
 	ctx := context.Background()
 	key := fmt.Sprintf("messages:%s", channel)
-	return h.redis.Del(ctx, key).Err()
+	err := h.redis.Del(ctx, key).Err()
+	if err != nil {
+		log.Printf("Kanal geçmişi temizleme hatası: %v", err)
+		return err
+	}
+	log.Printf("Kanal geçmişi temizlendi: %s", channel)
+	return nil
 }
 
 func main() {

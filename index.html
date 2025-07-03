@@ -440,29 +440,41 @@
             box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
         }
 
-        /* Sound toggle button */
-        .sound-toggle {
-            background: #28a745;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            padding: 8px 12px;
-            font-size: 13px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            margin-right: 10px;
+        /* Sound control styles */
+        .sound-controls {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 10px;
         }
 
-        .sound-toggle.muted {
-            background: #6c757d;
+        .sound-selector {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-size: 12px;
+            color: #495057;
+            cursor: pointer;
+            transition: all 0.2s ease;
         }
 
-        .sound-toggle:hover {
-            transform: translateY(-1px);
+        .sound-selector:hover {
+            border-color: #667eea;
+        }
+
+        .sound-test-btn {
+            background: #17a2b8;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .sound-test-btn:hover {
+            background: #138496;
         }
 
         /* Scrollbar */
@@ -557,13 +569,20 @@
                     <span class="channel-icon">#</span>
                     <span class="channel-name" id="currentChannelName">genel</span>
                 </div>
-                <div style="display: flex; align-items: center;">
+                <div class="sound-controls">
                     <button class="sound-toggle" id="soundToggle">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" id="soundIcon">
                             <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
                         </svg>
                         <span id="soundText">Sesli</span>
                     </button>
+                    <select class="sound-selector" id="soundSelector">
+                        <option value="beep">Bip Sesi</option>
+                        <option value="ding">Ding Sesi</option>
+                        <option value="pop">Pop Sesi</option>
+                        <option value="chime">Çan Sesi</option>
+                    </select>
+                    <button class="sound-test-btn" id="soundTestBtn">Test</button>
                     <button class="clear-history-btn" id="clearHistoryBtn">Geçmişi Temizle</button>
                 </div>
             </div>
@@ -646,6 +665,11 @@
                     console.log('WebSocket bağlantısı kuruldu');
                     reconnectAttempts = 0;
                     addSystemMessage(`${username} sohbete katıldı!`);
+                    
+                    // Load message history for current channel after connection
+                    setTimeout(() => {
+                        requestRecentMessages(currentChannel);
+                    }, 500);
                 };
 
                 ws.onmessage = (event) => {
@@ -795,67 +819,152 @@
             }
         }
 
-        // Sound management
+        // Enhanced Sound management with multiple sound types
         let isSoundEnabled = true;
         let audioContext;
-        let notificationSound;
+        let currentSoundType = 'beep';
 
-        // Initialize audio context and create notification sound
+        // Sound storage
+        const soundTypes = {
+            beep: () => createBeepSound(),
+            ding: () => createDingSound(),
+            pop: () => createPopSound(),
+            chime: () => createChimeSound()
+        };
+
+        // Initialize audio context and load saved sound preference
         function initializeAudio() {
             try {
                 audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                createNotificationSound();
+                
+                // Load saved sound preference
+                const savedSound = localStorage.getItem('soundType');
+                if (savedSound && soundTypes[savedSound]) {
+                    currentSoundType = savedSound;
+                    document.getElementById('soundSelector').value = savedSound;
+                }
+                
+                // Load saved sound enabled state
+                const savedSoundEnabled = localStorage.getItem('soundEnabled');
+                if (savedSoundEnabled !== null) {
+                    isSoundEnabled = savedSoundEnabled === 'true';
+                    updateSoundToggleUI();
+                }
             } catch (error) {
                 console.log('Audio context not supported:', error);
             }
         }
 
-        // Create a simple notification beep sound using Web Audio API
-        function createNotificationSound() {
+        // Create different sound types using Web Audio API
+        function createBeepSound() {
             if (!audioContext) return;
+            
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+            oscillator.frequency.setValueAtTime(600, audioContext.currentTime + 0.1);
+            
+            gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+            gainNode.gain.linearRampToValueAtTime(0.3, audioContext.currentTime + 0.01);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.3);
+        }
 
-            notificationSound = function() {
+        function createDingSound() {
+            if (!audioContext) return;
+            
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.setValueAtTime(1000, audioContext.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(800, audioContext.currentTime + 0.5);
+            
+            gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+            gainNode.gain.linearRampToValueAtTime(0.4, audioContext.currentTime + 0.01);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.5);
+        }
+
+        function createPopSound() {
+            if (!audioContext) return;
+            
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.setValueAtTime(300, audioContext.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(100, audioContext.currentTime + 0.1);
+            
+            gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+            gainNode.gain.linearRampToValueAtTime(0.5, audioContext.currentTime + 0.01);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.1);
+        }
+
+        function createChimeSound() {
+            if (!audioContext) return;
+            
+            // Create multiple oscillators for a richer chime sound
+            const frequencies = [523.25, 659.25, 783.99]; // C5, E5, G5
+            
+            frequencies.forEach((freq, index) => {
                 const oscillator = audioContext.createOscillator();
                 const gainNode = audioContext.createGain();
                 
                 oscillator.connect(gainNode);
                 gainNode.connect(audioContext.destination);
                 
-                // Set sound properties
-                oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
-                oscillator.frequency.setValueAtTime(600, audioContext.currentTime + 0.1);
+                oscillator.frequency.setValueAtTime(freq, audioContext.currentTime);
                 
-                gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-                gainNode.gain.linearRampToValueAtTime(0.3, audioContext.currentTime + 0.01);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+                const startTime = audioContext.currentTime + (index * 0.1);
+                gainNode.gain.setValueAtTime(0, startTime);
+                gainNode.gain.linearRampToValueAtTime(0.2, startTime + 0.01);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + 0.8);
                 
-                oscillator.start(audioContext.currentTime);
-                oscillator.stop(audioContext.currentTime + 0.3);
-            };
+                oscillator.start(startTime);
+                oscillator.stop(startTime + 0.8);
+            });
         }
 
         // Play notification sound
         function playNotificationSound() {
-            if (!isSoundEnabled || !notificationSound || !audioContext) return;
+            if (!isSoundEnabled || !audioContext) return;
             
             try {
                 // Resume audio context if it's suspended (browser policy)
                 if (audioContext.state === 'suspended') {
                     audioContext.resume();
                 }
-                notificationSound();
+                
+                const soundFunction = soundTypes[currentSoundType];
+                if (soundFunction) {
+                    soundFunction();
+                }
             } catch (error) {
                 console.log('Error playing notification sound:', error);
             }
         }
 
-        // Sound toggle functionality
-        const soundToggle = document.getElementById('soundToggle');
-        const soundIcon = document.getElementById('soundIcon');
-        const soundText = document.getElementById('soundText');
-
-        soundToggle.addEventListener('click', () => {
-            isSoundEnabled = !isSoundEnabled;
+        // Update sound toggle UI
+        function updateSoundToggleUI() {
+            const soundToggle = document.getElementById('soundToggle');
+            const soundIcon = document.getElementById('soundIcon');
+            const soundText = document.getElementById('soundText');
             
             if (isSoundEnabled) {
                 soundToggle.classList.remove('muted');
@@ -863,7 +972,27 @@
                 soundIcon.innerHTML = `
                     <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
                 `;
-                
+            } else {
+                soundToggle.classList.add('muted');
+                soundText.textContent = 'Sessiz';
+                soundIcon.innerHTML = `
+                    <path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/>
+                `;
+            }
+        }
+
+        // Sound control event listeners
+        const soundToggle = document.getElementById('soundToggle');
+        const soundSelector = document.getElementById('soundSelector');
+        const soundTestBtn = document.getElementById('soundTestBtn');
+
+        // Sound toggle functionality
+        soundToggle.addEventListener('click', () => {
+            isSoundEnabled = !isSoundEnabled;
+            localStorage.setItem('soundEnabled', isSoundEnabled.toString());
+            updateSoundToggleUI();
+            
+            if (isSoundEnabled) {
                 // Initialize audio on first enable
                 if (!audioContext) {
                     initializeAudio();
@@ -879,16 +1008,47 @@
                     position: 'top-end'
                 });
             } else {
-                soundToggle.classList.add('muted');
-                soundText.textContent = 'Sessiz';
-                soundIcon.innerHTML = `
-                    <path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/>
-                `;
-                
                 Swal.fire({
                     icon: 'info',
                     title: 'Ses Kapatıldı',
                     text: 'Bildirim sesleri kapalı',
+                    timer: 1500,
+                    showConfirmButton: false,
+                    toast: true,
+                    position: 'top-end'
+                });
+            }
+        });
+
+        // Sound selector change
+        soundSelector.addEventListener('change', (e) => {
+            currentSoundType = e.target.value;
+            localStorage.setItem('soundType', currentSoundType);
+            
+            Swal.fire({
+                icon: 'info',
+                title: 'Ses Değiştirildi',
+                text: `Yeni ses: ${e.target.options[e.target.selectedIndex].text}`,
+                timer: 1500,
+                showConfirmButton: false,
+                toast: true,
+                position: 'top-end'
+            });
+        });
+
+        // Sound test button
+        soundTestBtn.addEventListener('click', () => {
+            if (!audioContext) {
+                initializeAudio();
+            }
+            
+            if (isSoundEnabled) {
+                playNotificationSound();
+            } else {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Ses Kapalı',
+                    text: 'Ses testini duymak için sesi açın',
                     timer: 1500,
                     showConfirmButton: false,
                     toast: true,
