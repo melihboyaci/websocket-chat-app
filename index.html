@@ -938,6 +938,11 @@
 
                 messages.appendChild(messageElement);
                 messages.scrollTop = messages.scrollHeight;
+                
+                // Play notification sound for messages from other users in current channel
+                if (data.username !== username && data.username !== 'Sistem') {
+                    playNotificationSound();
+                }
             } else if (data.channel && data.channel !== currentChannel) {
                 // Add notification for messages in other channels
                 if (data.username !== username) {
