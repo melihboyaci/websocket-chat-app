@@ -151,29 +151,6 @@
             margin-bottom: 12px;
         }
 
-        /* Active Users Counter */
-        .active-users {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 12px;
-            background: #f8f9fa;
-            border-radius: 20px;
-            font-size: 13px;
-            color: #6c757d;
-        }
-
-        .active-users-icon {
-            width: 16px;
-            height: 16px;
-            color: #28a745;
-        }
-
-        .active-users-count {
-            font-weight: 600;
-            color: #495057;
-        }
-
         /* Main Content */
         .main-content {
             flex: 1;
@@ -555,15 +532,7 @@
                         <div class="user-status">Çevrimiçi</div>
                     </div>
                 </div>
-                
-                <!-- Active Users Counter -->
-                <div class="active-users">
-                    <svg class="active-users-icon" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M16 4c0-1.11.89-2 2-2s2 .89 2 2-.89 2-2 2-2-.89-2-2zm4 18v-6h2.5l-2.54-7.63A1.5 1.5 0 0 0 18.5 7h-5A1.5 1.5 0 0 0 12.04 8.37L9.5 16H12v6h8zM12.5 11.5c.83 0 1.5-.67 1.5-1.5s-.67-1.5-1.5-1.5S11 9.17 11 10s.67 1.5 1.5 1.5zM5.5 6c1.11 0 2-.89 2-2s-.89-2-2-2-2 .89-2 2 .89 2 2 2zm2.5 16v-7H6L3.96 7.63A1.5 1.5 0 0 0 2.5 6.5h-1A1.5 1.5 0 0 0 .04 8.37L2.5 16H5v6h3z"/>
-                    </svg>
-                    <span class="active-users-count" id="activeUsersCount">1</span>
-                    <span>aktif kullanıcı</span>
-                </div>
+                <!-- Aktif kullanıcı sayacı kaldırıldı -->
             </div>
         </div>
 
@@ -631,7 +600,6 @@
         const currentChannelName = document.getElementById('currentChannelName');
         const channels = document.querySelectorAll('.channel');
         const clearHistoryBtn = document.getElementById('clearHistoryBtn');
-        const activeUsersCount = document.getElementById('activeUsersCount');
 
         // Login functionality
         loginForm.addEventListener('submit', (e) => {
@@ -687,7 +655,6 @@
                             
                             // Handle user count updates
                             if (data.type === 'user_count') {
-                                updateActiveUserCount(data.count);
                                 continue;
                             }
                             
@@ -1202,6 +1169,39 @@
                                 icon: 'error',
                                 title: 'Hata!',
                                 text: 'Geçmiş temizlenemedi.',
+                                timer: 2000,
+                                showConfirmButton: false,
+                                toast: true,
+                                position: 'top-end'
+                            });
+                        }
+                    })
+                    .catch(() => {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Hata!',
+                            text: 'Sunucu hatası.',
+                            timer: 2000,
+                            showConfirmButton: false,
+                            toast: true,
+                            position: 'top-end'
+                        });
+                    });
+                }
+            });
+        });
+
+        sendButton.addEventListener('click', sendMessage);
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        usernameInput.focus();
+    </script>
+</body>
+</html>
                                 timer: 2000,
                                 showConfirmButton: false,
                                 toast: true,
