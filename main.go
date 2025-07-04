@@ -23,10 +23,11 @@ type Message struct {
 	Message   string    `json:"message"`
 	Timestamp time.Time `json:"timestamp"`
 	Channel   string    `json:"channel"`
-	Type      string    `json:"type,omitempty"` // "text", "file", "image"
+	Type      string    `json:"type,omitempty"` // "text", "file", "image", "seen"
 	FileURL   string    `json:"fileUrl,omitempty"`
 	FileName  string    `json:"fileName,omitempty"`
 	FileSize  int64     `json:"fileSize,omitempty"`
+	SeenBy    []string  `json:"seenBy,omitempty"` // Kullanıcı adları
 }
 
 // Client represents a connected WebSocket client
@@ -91,25 +92,55 @@ func (h *Hub) storeMessage(msg Message) {
 	if h.redis == nil {
 		return
 	}
-
 	ctx := context.Background()
 	messageJSON, err := json.Marshal(msg)
 	if err != nil {
 		log.Printf("Mesaj serialize hatası: %v", err)
 		return
 	}
-
-	// Store message in a list for the channel (keep last 100 messages)
-	// Use "websocket:" prefix to separate from question-chat-app
 	key := fmt.Sprintf("websocket:messages:%s", msg.Channel)
 	pipe := h.redis.Pipeline()
 	pipe.LPush(ctx, key, messageJSON)
-	pipe.LTrim(ctx, key, 0, 99)         // Keep only the last 100 messages
-	pipe.Expire(ctx, key, 24*time.Hour) // Messages expire after 24 hours
-
+	pipe.LTrim(ctx, key, 0, 99)
+	pipe.Expire(ctx, key, 24*time.Hour)
 	_, err = pipe.Exec(ctx)
 	if err != nil {
 		log.Printf("Redis mesaj kaydetme hatası: %v", err)
+	}
+}
+
+// Update seenBy for a message in Redis
+func (h *Hub) markMessageSeen(channel string, timestamp time.Time, username string) {
+	if h.redis == nil {
+		return
+	}
+	ctx := context.Background()
+	key := fmt.Sprintf("websocket:messages:%s", channel)
+	msgs, err := h.redis.LRange(ctx, key, 0, 49).Result()
+	if err != nil {
+		return
+	}
+	for i, raw := range msgs {
+		var msg Message
+		if err := json.Unmarshal([]byte(raw), &msg); err == nil {
+			// Compare timestamp (to seconds)
+			if msg.Timestamp.Unix() == timestamp.Unix() {
+				// Add username to SeenBy if not already present
+				found := false
+				for _, u := range msg.SeenBy {
+					if u == username {
+						found = true
+						break
+					}
+				}
+				if !found {
+					msg.SeenBy = append(msg.SeenBy, username)
+					updated, _ := json.Marshal(msg)
+					h.redis.LSet(ctx, key, int64(i), updated)
+				}
+				break
+			}
+		}
 	}
 }
 
@@ -227,6 +258,27 @@ func (h *Hub) run() {
 			// Parse message to store in Redis
 			var msg Message
 			if err := json.Unmarshal(message, &msg); err == nil {
+				// Handle "seen" message type
+				if msg.Type == "seen" && msg.Timestamp.Unix() > 0 && msg.Username != "" {
+					h.markMessageSeen(msg.Channel, msg.Timestamp, msg.Username)
+					// Broadcast seen update to all clients
+					seenUpdate := map[string]interface{}{
+						"type":      "seen",
+						"channel":   msg.Channel,
+						"timestamp": msg.Timestamp,
+						"username":  msg.Username,
+					}
+					seenJSON, _ := json.Marshal(seenUpdate)
+					h.mutex.RLock()
+					for client := range h.clients {
+						select {
+						case client.Send <- seenJSON:
+						default:
+						}
+					}
+					h.mutex.RUnlock()
+					continue
+				}
 				h.storeMessage(msg)
 			}
 
@@ -330,6 +382,11 @@ func (c *Client) readPump(hub *Hub) {
 			if msg.Message == "__GET_RECENT_MESSAGES__" {
 				log.Printf("Geçmiş mesajlar istendi: kanal=%s, kullanıcı=%s", msg.Channel, msg.Username)
 				go hub.sendRecentMessages(c, msg.Channel)
+				continue
+			}
+			// Handle "seen" message type (already handled in run)
+			if msg.Type == "seen" {
+				hub.broadcast <- messageBytes
 				continue
 			}
 		}
