@@ -279,9 +279,14 @@ func (h *Hub) run() {
 					h.mutex.RUnlock()
 					continue
 				}
-				h.storeMessage(msg)
+
+				// Store regular messages (not "seen" messages)
+				if msg.Type != "seen" {
+					h.storeMessage(msg)
+				}
 			}
 
+			// Broadcast to all clients
 			h.mutex.RLock()
 			for client := range h.clients {
 				select {
@@ -372,7 +377,8 @@ func (c *Client) readPump(hub *Hub) {
 			if msg.Username != "" {
 				c.Username = msg.Username
 			}
-			// Set timestamp and default channel
+
+			// Set timestamp and default channel for regular messages
 			if msg.Type != "seen" {
 				// Eğer timestamp sıfırsa, yeni timestamp ata, yoksa gelen timestamp'ı koru
 				if msg.Timestamp.IsZero() {
@@ -389,14 +395,9 @@ func (c *Client) readPump(hub *Hub) {
 				go hub.sendRecentMessages(c, msg.Channel)
 				continue
 			}
-			// Handle "seen" message type (already handled in run)
-			if msg.Type == "seen" {
-				hub.broadcast <- messageBytes
-				continue
-			}
 		}
 
-		log.Printf("Gelen mesaj: %s", string(messageBytes))
+		log.Printf("Gelen mesaj: %s, Tip: %s, Kullanıcı: %s", msg.Message, msg.Type, msg.Username)
 
 		// Broadcast the enriched message
 		enrichedMessage, err := json.Marshal(msg)
