@@ -373,7 +373,12 @@ func (c *Client) readPump(hub *Hub) {
 				c.Username = msg.Username
 			}
 			// Set timestamp and default channel
-			msg.Timestamp = time.Now()
+			if msg.Type != "seen" {
+				// Eğer timestamp sıfırsa, yeni timestamp ata, yoksa gelen timestamp'ı koru
+				if msg.Timestamp.IsZero() {
+					msg.Timestamp = time.Now()
+				}
+			}
 			if msg.Channel == "" {
 				msg.Channel = "genel"
 			}
