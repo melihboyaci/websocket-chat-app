@@ -160,6 +160,35 @@ func (h *Hub) sendRecentMessages(client *Client, channel string) {
 	}
 }
 
+// Broadcast active user count to all clients
+func (h *Hub) broadcastUserCount() {
+	h.mutex.RLock()
+	count := len(h.clients)
+	h.mutex.RUnlock()
+
+	userCountMessage := map[string]interface{}{
+		"type":      "user_count",
+		"count":     count,
+		"timestamp": time.Now(),
+	}
+
+	messageJSON, err := json.Marshal(userCountMessage)
+	if err != nil {
+		log.Printf("User count message serialize hatası: %v", err)
+		return
+	}
+
+	h.mutex.RLock()
+	for client := range h.clients {
+		select {
+		case client.Send <- messageJSON:
+		default:
+			// Skip if client buffer is full
+		}
+	}
+	h.mutex.RUnlock()
+}
+
 func (h *Hub) run() {
 	for {
 		select {
@@ -169,8 +198,8 @@ func (h *Hub) run() {
 			h.mutex.Unlock()
 			log.Printf("Yeni kullanıcı bağlandı. ID: %s", client.ID)
 
-			// Remove automatic recent message sending
-			// go h.sendRecentMessages(client, "genel")
+			// Broadcast updated user count
+			go h.broadcastUserCount()
 
 		case client := <-h.unregister:
 			h.mutex.Lock()
@@ -183,6 +212,9 @@ func (h *Hub) run() {
 				log.Printf("Bağlantı kapatıldı. ID: %s", client.ID)
 			}
 			h.mutex.Unlock()
+
+			// Broadcast updated user count
+			go h.broadcastUserCount()
 
 		case message := <-h.broadcast:
 			// Parse message to store in Redis
