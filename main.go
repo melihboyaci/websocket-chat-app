@@ -346,7 +346,7 @@ func (c *Client) readPump(hub *Hub) {
 		hub.unregister <- c
 		c.Conn.Close()
 	}()
-	c.Conn.SetReadLimit(512)
+	c.Conn.SetReadLimit(1024) // Increase from 512 to 1024 bytes
 	c.Conn.SetReadDeadline(time.Now().Add(60 * time.Second))
 	c.Conn.SetPongHandler(func(string) error {
 		c.Conn.SetReadDeadline(time.Now().Add(60 * time.Second))
@@ -367,10 +367,11 @@ func (c *Client) readPump(hub *Hub) {
 			log.Printf("Mesaj parse hatası: %v", err)
 			// Fallback to plain text
 			msg = Message{
-				Username:  "Anonim",
+				Username:  c.Username,
 				Message:   string(messageBytes),
 				Timestamp: time.Now(),
 				Channel:   "genel",
+				Type:      "text",
 			}
 		} else {
 			// Update client username
@@ -380,13 +381,16 @@ func (c *Client) readPump(hub *Hub) {
 
 			// Set timestamp and default channel for regular messages
 			if msg.Type != "seen" {
-				// Eğer timestamp sıfırsa, yeni timestamp ata, yoksa gelen timestamp'ı koru
-				if msg.Timestamp.IsZero() {
+				// Always set server timestamp for new messages
+				if msg.Message != "__GET_RECENT_MESSAGES__" {
 					msg.Timestamp = time.Now()
 				}
 			}
 			if msg.Channel == "" {
 				msg.Channel = "genel"
+			}
+			if msg.Type == "" {
+				msg.Type = "text"
 			}
 
 			// Handle special request for recent messages
@@ -397,7 +401,7 @@ func (c *Client) readPump(hub *Hub) {
 			}
 		}
 
-		log.Printf("Gelen mesaj: %s, Tip: %s, Kullanıcı: %s", msg.Message, msg.Type, msg.Username)
+		log.Printf("Gelen mesaj: %s, Tip: %s, Kullanıcı: %s, Kanal: %s", msg.Message, msg.Type, msg.Username, msg.Channel)
 
 		// Broadcast the enriched message
 		enrichedMessage, err := json.Marshal(msg)

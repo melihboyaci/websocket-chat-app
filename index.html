@@ -753,6 +753,7 @@
                 const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
                 const wsUrl = `${protocol}//${window.location.host}/ws`;
                 
+                console.log('WebSocket bağlantısı kuruluyor:', wsUrl);
                 ws = new WebSocket(wsUrl);
 
                 ws.onopen = () => {
@@ -767,28 +768,35 @@
                 };
 
                 ws.onmessage = (event) => {
+                    console.log('WebSocket mesajı alındı:', event.data);
                     const lines = event.data.split('\n');
                     for (const line of lines) {
                         if (!line.trim()) continue;
                         try {
                             const data = JSON.parse(line);
+                            console.log('Parse edilen mesaj:', data);
+                            
                             // Handle user count updates
                             if (data.type === 'user_count') {
+                                console.log('Kullanıcı sayısı güncellendi:', data.count);
                                 continue;
                             }
                             // Handle seen updates
                             if (data.type === 'seen') {
+                                console.log('Görüldü güncellemesi:', data);
                                 updateSeenStatus(data);
                                 continue;
                             }
+                            console.log('Mesaj görüntüleniyor:', data);
                             displayMessage(data);
                         } catch (error) {
-                            console.error('Mesaj parse hatası:', error);
+                            console.error('Mesaj parse hatası:', error, 'Raw data:', line);
                             displayMessage({
                                 username: 'Anonim',
                                 message: line,
                                 timestamp: new Date(),
-                                channel: currentChannel
+                                channel: currentChannel,
+                                type: 'text'
                             });
                         }
                     }
@@ -891,10 +899,12 @@
                     const messageData = {
                         username: username,
                         message: message,
-                        timestamp: new Date(),
-                        channel: currentChannel
+                        timestamp: new Date().toISOString(),
+                        channel: currentChannel,
+                        type: 'text'
                     };
                     
+                    console.log('Mesaj gönderiliyor:', messageData);
                     ws.send(JSON.stringify(messageData));
                     messageInput.value = '';
                 } catch (error) {
@@ -911,6 +921,7 @@
                     });
                 }
             } else if (!ws || ws.readyState !== WebSocket.OPEN) {
+                console.log('WebSocket bağlantısı yok, yeniden bağlanılıyor...');
                 Swal.fire({
                     icon: 'warning',
                     title: 'Bağlantı Kesildi',
@@ -1371,12 +1382,17 @@
 
         // Enhanced displayMessage function to handle file messages and seen
         function displayMessage(data) {
+            console.log('displayMessage çağrıldı:', data);
+            
             if (data.message === "__GET_RECENT_MESSAGES__") {
+                console.log('Geçmiş mesajlar isteği, atlanıyor');
                 return;
             }
             
             // Only display messages for current channel or system messages
             if (!data.channel || data.channel === currentChannel) {
+                console.log('Mesaj mevcut kanalda görüntüleniyor:', data.channel, currentChannel);
+                
                 const messageElement = document.createElement('div');
                 messageElement.className = 'message';
 
@@ -1439,7 +1455,7 @@
                         <div class="message-avatar">${data.username.charAt(0).toUpperCase()}</div>
                         <div class="message-content">
                             <div class="message-header">
-                                <span class="message-author">${data.username}</span>
+                                <span class="message-author">${escapeHtml(data.username)}</span>
                                 <span class="message-timestamp">${timeString}</span>
                             </div>
                             <div class="message-text">${escapeHtml(data.message)}</div>
@@ -1451,6 +1467,8 @@
                 messageElement.innerHTML = messageContent;
                 messages.appendChild(messageElement);
                 messages.scrollTop = messages.scrollHeight;
+
+                console.log('Mesaj DOM\'a eklendi, toplam mesaj sayısı:', messages.children.length);
 
                 // Show seen info
                 updateSeenInfo(msgKey);
@@ -1465,6 +1483,7 @@
                     sendSeenForMessage(data);
                 }, 100);
             } else if (data.channel && data.channel !== currentChannel) {
+                console.log('Mesaj farklı kanalda, bildirim ekleniyor:', data.channel);
                 // Add notification for messages in other channels
                 if (data.username !== username) {
                     addNotification(data.channel);
