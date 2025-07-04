@@ -15,8 +15,8 @@ services:
     build: .
     image: websocket-chat-app:golang-v1.0
     ports:
-      - "8080:80"    # HTTP redirect için (host:container)
-      - "8443:443"   # HTTPS için (host:container)
+      - "80:80"      # HTTP redirect (host:container)
+      - "443:443"    # HTTPS (host:container)
     restart: unless-stopped
     container_name: websocket-chat-app
     depends_on:

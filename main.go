@@ -449,7 +449,7 @@ func main() {
 	}
 
 	log.Printf("HTTPS sohbet sunucusu https://localhost:%s adresinde başlatıldı...", httpsPort)
-	log.Printf("Dış erişim için: https://melihboyaci.xyz:8443 adresini kullanın")
+	log.Printf("Dış erişim için: https://melihboyaci.xyz adresini kullanın")
 
 	// HTTP'den HTTPS'e yönlendirme sunucusu
 	go func() {

@@ -27,5 +27,7 @@ COPY --from=builder /app/main .
 COPY --from=builder /app/index.html .
 
 EXPOSE 8080
+EXPOSE 80
+EXPOSE 443
 
 CMD ["./main"]
