@@ -656,6 +656,7 @@
                     </div>
                 </div>
                 <!-- Aktif kullanıcı sayacı kaldırıldı -->
+                <button id="logoutBtn" class="login-button" style="background: #dc3545; margin-top: 8px;">Çıkış Yap</button>
             </div>
         </div>
 
@@ -747,6 +748,8 @@
             e.preventDefault();
             username = usernameInput.value.trim();
             if (username) {
+                // Kullanıcı adını localStorage'a kaydet
+                localStorage.setItem('chatliyo_username', username);
                 displayUsername.textContent = username;
                 userAvatar.textContent = username.charAt(0).toUpperCase();
                 loginModal.style.display = 'none';
@@ -766,6 +769,22 @@
                 });
                 
                 connectWebSocket();
+            }
+        });
+
+        // Sayfa yüklendiğinde localStorage'dan kullanıcı adı kontrolü
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedUsername = localStorage.getItem('chatliyo_username');
+            if (savedUsername && savedUsername.trim().length > 0) {
+                username = savedUsername;
+                displayUsername.textContent = username;
+                userAvatar.textContent = username.charAt(0).toUpperCase();
+                loginModal.style.display = 'none';
+                app.style.display = 'flex';
+                initializeAudio();
+                connectWebSocket();
+            } else {
+                usernameInput.focus();
             }
         });
 
@@ -1700,6 +1719,25 @@
                 badge.textContent = '0';
             }
         }
+
+        // Çıkış yap butonu işlevi
+        const logoutBtn = document.getElementById('logoutBtn');
+        logoutBtn.addEventListener('click', () => {
+            Swal.fire({
+                title: 'Çıkış Yap',
+                text: 'Çıkış yapmak istediğinize emin misiniz?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Evet, çıkış yap',
+                cancelButtonText: 'İptal',
+                confirmButtonColor: '#dc3545'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    localStorage.removeItem('chatliyo_username');
+                    location.reload();
+                }
+            });
+        });
     </script>
 </body>
 </html>
