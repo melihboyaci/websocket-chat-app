@@ -570,6 +570,27 @@
             transition: width 0.3s ease;
         }
 
+        /* Seen status styling */
+        .seen-info {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 11px;
+            color: #28a745;
+            margin-top: 4px;
+        }
+
+        .seen-checkmark {
+            color: #28a745;
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        .seen-users {
+            color: #6c757d;
+            font-size: 10px;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .app {
@@ -1380,6 +1401,19 @@
             xhr.send(formData);
         }
 
+        // Update seen info in UI
+        function updateSeenInfo(msgKey) {
+            const seenBy = seenByMap[msgKey] || [];
+            const seenDivs = document.querySelectorAll(`.seen-info[data-msgkey="${msgKey}"]`);
+            seenDivs.forEach(div => {
+                if (seenBy.length === 0) {
+                    div.innerHTML = '';
+                } else {
+                    div.innerHTML = `<span class="seen-checkmark">✓</span><span class="seen-users">${seenBy.join(', ')}</span>`;
+                }
+            });
+        }
+
         // Enhanced displayMessage function to handle file messages and seen
         function displayMessage(data) {
             console.log('displayMessage çağrıldı:', data);
@@ -1447,7 +1481,7 @@
                             </div>
                             <div class="message-text">${escapeHtml(data.message)}</div>
                             ${fileContent}
-                            <div class="seen-info" data-msgkey="${msgKey}" style="font-size:11px;color:#888;margin-top:4px;"></div>
+                            <div class="seen-info" data-msgkey="${msgKey}"></div>
                         </div>
                     `;
                 } else {
@@ -1459,7 +1493,7 @@
                                 <span class="message-timestamp">${timeString}</span>
                             </div>
                             <div class="message-text">${escapeHtml(data.message)}</div>
-                            <div class="seen-info" data-msgkey="${msgKey}" style="font-size:11px;color:#888;margin-top:4px;"></div>
+                            <div class="seen-info" data-msgkey="${msgKey}"></div>
                         </div>
                     `;
                 }
@@ -1515,9 +1549,9 @@
             const seenDivs = document.querySelectorAll(`.seen-info[data-msgkey="${msgKey}"]`);
             seenDivs.forEach(div => {
                 if (seenBy.length === 0) {
-                    div.textContent = '';
+                    div.innerHTML = '';
                 } else {
-                    div.textContent = 'Görüldü: ' + seenBy.join(', ');
+                    div.innerHTML = `<span class="seen-checkmark">✓</span><span class="seen-users">${seenBy.join(', ')}</span>`;
                 }
             });
         }
