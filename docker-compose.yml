@@ -26,9 +26,9 @@ services:
       - APP_NAME=websocket-chat-app
     volumes:
       - ./ssl:/app/ssl:ro  # SSL sertifikalarını read-only olarak mount et
-      - ../uploads:/app/uploads
       - uploads:/app/uploads
 
 volumes:
   redis_data:
+  uploads:
   uploads:
