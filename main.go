@@ -234,8 +234,12 @@ func (h *Hub) run() {
 			h.mutex.Lock()
 			h.clients[client] = true
 			h.mutex.Unlock()
-			log.Printf("Yeni kullanıcı bağlandı. ID: %s", client.ID)
-
+			// Show username if available
+			if client.Username != "" {
+				log.Printf("Yeni kullanıcı bağlandı. ID: %s, Kullanıcı: %s", client.ID, client.Username)
+			} else {
+				log.Printf("Yeni kullanıcı bağlandı. ID: %s", client.ID)
+			}
 			// Broadcast updated user count
 			go h.broadcastUserCount()
 
@@ -376,6 +380,10 @@ func (c *Client) readPump(hub *Hub) {
 		} else {
 			// Update client username
 			if msg.Username != "" {
+				// Log username on first assignment
+				if c.Username == "" {
+					log.Printf("Kullanıcı adı atandı: ID: %s, Kullanıcı: %s", c.ID, msg.Username)
+				}
 				c.Username = msg.Username
 			}
 
