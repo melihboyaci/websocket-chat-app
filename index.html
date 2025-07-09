@@ -586,27 +586,6 @@
         transition: width 0.3s ease;
       }
 
-      /* Seen status styling */
-      .seen-info {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        font-size: 11px;
-        color: #28a745;
-        margin-top: 4px;
-      }
-
-      .seen-checkmark {
-        color: #28a745;
-        font-weight: bold;
-        font-size: 12px;
-      }
-
-      .seen-users {
-        color: #6c757d;
-        font-size: 10px;
-      }
-
       /* Responsive */
       @media (max-width: 768px) {
         .app {
@@ -631,7 +610,7 @@
   <body>
     <div id="loginModal" class="login-modal">
       <div class="login-form">
-        <h2 class="login-title">Chatliyo'e Katıl</h2>
+        <h2 class="login-title">Chatliyo-Chat'e Katıl</h2>
         <p class="login-subtitle">
           Kullanıcı adınızı girin ve sohbete başlayın
         </p>
@@ -655,7 +634,7 @@
       <!-- Sidebar -->
       <div class="sidebar">
         <div class="sidebar-header">
-          <div class="app-title">Chatliyo</div>
+          <div class="app-title">Chatliyo-Chat</div>
           <div class="online-status">
             <span class="status-dot"></span>
             Çevrimiçi
@@ -731,7 +710,7 @@
         <div class="file-upload-area" id="fileUploadArea">
           <div>📁 Dosya yüklemek için tıklayın veya sürükleyip bırakın</div>
           <div style="font-size: 12px; margin-top: 4px">
-            Maksimum 10MB (Resim, PDF, TXT, ZIP)
+            Maksimum 30MB (Resim, PDF, TXT, ZIP)
           </div>
           <div class="upload-progress" id="uploadProgress">
             <div class="upload-progress-bar" id="uploadProgressBar"></div>
@@ -781,13 +760,6 @@
         genel: 0,
       };
 
-      // Track last message timestamps per channel for seen
-      let lastMessageTimestamps = {
-        genel: null,
-      };
-      // Track seenBy per message (key: channel+timestamp)
-      let seenByMap = {};
-
       // DOM Elements
       const loginModal = document.getElementById("loginModal");
       const app = document.getElementById("app");
@@ -808,16 +780,17 @@
         username = usernameInput.value.trim();
         if (username) {
           // Kullanıcı adını localStorage'a kaydet
-          localStorage.setItem("chatliyo_username", username);
+          localStorage.setItem("Chatliyochat_username", username);
           displayUsername.textContent = username;
           userAvatar.textContent = username.charAt(0).toUpperCase();
           loginModal.style.display = "none";
           app.style.display = "flex";
+          // Initialize audio after user interaction (required by browser policies)
           initializeAudio();
           Swal.fire({
             icon: "success",
             title: "Hoş geldin!",
-            text: `${username}, Chatliyo'e başarıyla katıldın`,
+            text: `${username}, Chatliyo-Chat'e başarıyla katıldın`,
             timer: 2000,
             showConfirmButton: false,
             toast: true,
@@ -829,7 +802,7 @@
 
       // Sayfa yüklendiğinde localStorage'dan kullanıcı adı kontrolü
       window.addEventListener("DOMContentLoaded", () => {
-        const savedUsername = localStorage.getItem("chatliyo_username");
+        const savedUsername = localStorage.getItem("Chatliyochat_username");
         if (savedUsername && savedUsername.trim().length > 0) {
           username = savedUsername;
           displayUsername.textContent = username;
@@ -839,11 +812,27 @@
           initializeAudio();
           connectWebSocket();
         } else {
-          loginModal.style.display = "flex";
-          app.style.display = "none";
-          usernameInput.value = "";
-          setTimeout(() => { usernameInput.focus(); }, 100);
+          usernameInput.focus();
         }
+      });
+
+      // Çıkış yap butonu işlevi
+      const logoutBtn = document.getElementById("logoutBtn");
+      logoutBtn.addEventListener("click", () => {
+        Swal.fire({
+          title: "Çıkış Yap",
+          text: "Çıkış yapmak istediğinize emin misiniz?",
+          icon: "warning",
+          showCancelButton: true,
+          confirmButtonText: "Evet, çıkış yap",
+          cancelButtonText: "İptal",
+          confirmButtonColor: "#dc3545",
+        }).then((result) => {
+          if (result.isConfirmed) {
+            localStorage.removeItem("Chatliyochat_username");
+            location.reload();
+          }
+        });
       });
 
       function connectWebSocket() {
@@ -852,7 +841,6 @@
             window.location.protocol === "https:" ? "wss:" : "ws:";
           const wsUrl = `${protocol}//${window.location.host}/ws`;
 
-          console.log("WebSocket bağlantısı kuruluyor:", wsUrl);
           ws = new WebSocket(wsUrl);
 
           ws.onopen = () => {
@@ -867,35 +855,25 @@
           };
 
           ws.onmessage = (event) => {
-            console.log("WebSocket mesajı alındı:", event.data);
             const lines = event.data.split("\n");
             for (const line of lines) {
               if (!line.trim()) continue;
               try {
                 const data = JSON.parse(line);
-                console.log("Parse edilen mesaj:", data);
 
                 // Handle user count updates
                 if (data.type === "user_count") {
-                  console.log("Kullanıcı sayısı güncellendi:", data.count);
                   continue;
                 }
-                // Handle seen updates
-                if (data.type === "seen") {
-                  console.log("Görüldü güncellemesi:", data);
-                  updateSeenStatus(data);
-                  continue;
-                }
-                console.log("Mesaj görüntüleniyor:", data);
+
                 displayMessage(data);
               } catch (error) {
-                console.error("Mesaj parse hatası:", error, "Raw data:", line);
+                console.error("Mesaj parse hatası:", error);
                 displayMessage({
                   username: "Anonim",
                   message: line,
                   timestamp: new Date(),
                   channel: currentChannel,
-                  type: "text",
                 });
               }
             }
@@ -987,8 +965,6 @@
             console.error("Geçmiş mesajları isteme hatası:", error);
           }
         }
-        // Reset seenByMap for new channel
-        seenByMap = {};
       }
 
       function sendMessage() {
@@ -998,12 +974,10 @@
             const messageData = {
               username: username,
               message: message,
-              timestamp: new Date().toISOString(),
+              timestamp: new Date(),
               channel: currentChannel,
-              type: "text",
             };
 
-            console.log("Mesaj gönderiliyor:", messageData);
             ws.send(JSON.stringify(messageData));
             messageInput.value = "";
           } catch (error) {
@@ -1020,7 +994,6 @@
             });
           }
         } else if (!ws || ws.readyState !== WebSocket.OPEN) {
-          console.log("WebSocket bağlantısı yok, yeniden bağlanılıyor...");
           Swal.fire({
             icon: "warning",
             title: "Bağlantı Kesildi",
@@ -1380,7 +1353,7 @@
       // Enhanced upload file function with better error handling
       function uploadFile(file) {
         // Enhanced file validation
-        const maxSize = 10 * 1024 * 1024; // 10MB
+        const maxSize = 30 * 1024 * 1024; // 30MB
         const allowedTypes = [
           "image/jpeg",
           "image/png",
@@ -1447,7 +1420,7 @@
         Swal.fire({
           title: "Dosya Yükle",
           text: `"${file.name}" dosyasını yüklemek istediğinize emin misiniz?`,
-          icon: "question",
+          icon: "Chatliyo",
           showCancelButton: true,
           confirmButtonText: "Evet, Yükle",
           cancelButtonText: "İptal",
@@ -1537,40 +1510,14 @@
         xhr.send(formData);
       }
 
-      // Update seen info in UI
-      function updateSeenInfo(msgKey) {
-        const seenBy = seenByMap[msgKey] || [];
-        const seenDivs = document.querySelectorAll(
-          `.seen-info[data-msgkey="${msgKey}"]`
-        );
-        seenDivs.forEach((div) => {
-          if (seenBy.length === 0) {
-            div.innerHTML = "";
-          } else {
-            div.innerHTML = `<span class="seen-checkmark">✓</span><span class="seen-users">${seenBy.join(
-              ", "
-            )}</span>`;
-          }
-        });
-      }
-
-      // Enhanced displayMessage function to handle file messages and seen
+      // Enhanced displayMessage function to handle file messages
       function displayMessage(data) {
-        console.log("displayMessage çağrıldı:", data);
-
         if (data.message === "__GET_RECENT_MESSAGES__") {
-          console.log("Geçmiş mesajlar isteği, atlanıyor");
           return;
         }
 
         // Only display messages for current channel or system messages
         if (!data.channel || data.channel === currentChannel) {
-          console.log(
-            "Mesaj mevcut kanalda görüntüleniyor:",
-            data.channel,
-            currentChannel
-          );
-
           const messageElement = document.createElement("div");
           messageElement.className = "message";
 
@@ -1579,13 +1526,6 @@
             hour: "2-digit",
             minute: "2-digit",
           });
-
-          // Track last message timestamp for seen
-          lastMessageTimestamps[currentChannel] = timestamp;
-
-          // Store seenBy info
-          const msgKey = `${currentChannel}_${timestamp.getTime()}`;
-          seenByMap[msgKey] = data.seenBy || [];
 
           let messageContent = "";
 
@@ -1647,7 +1587,6 @@
                               data.message
                             )}</div>
                             ${fileContent}
-                            <div class="seen-info" data-msgkey="${msgKey}"></div>
                         </div>
                     `;
           } else {
@@ -1657,15 +1596,14 @@
                           .toUpperCase()}</div>
                         <div class="message-content">
                             <div class="message-header">
-                                <span class="message-author">${escapeHtml(
+                                <span class="message-author">${
                                   data.username
-                                )}</span>
+                                }</span>
                                 <span class="message-timestamp">${timeString}</span>
                             </div>
                             <div class="message-text">${escapeHtml(
                               data.message
                             )}</div>
-                            <div class="seen-info" data-msgkey="${msgKey}"></div>
                         </div>
                     `;
           }
@@ -1674,28 +1612,11 @@
           messages.appendChild(messageElement);
           messages.scrollTop = messages.scrollHeight;
 
-          console.log(
-            "Mesaj DOM'a eklendi, toplam mesaj sayısı:",
-            messages.children.length
-          );
-
-          // Show seen info
-          updateSeenInfo(msgKey);
-
           // Play notification sound for messages from other users in current channel
           if (data.username !== username && data.username !== "Sistem") {
             playNotificationSound();
           }
-
-          // After displaying, send seen notification for this message
-          setTimeout(() => {
-            sendSeenForMessage(data);
-          }, 100);
         } else if (data.channel && data.channel !== currentChannel) {
-          console.log(
-            "Mesaj farklı kanalda, bildirim ekleniyor:",
-            data.channel
-          );
           // Add notification for messages in other channels
           if (data.username !== username) {
             addNotification(data.channel);
@@ -1705,51 +1626,61 @@
         }
       }
 
-      // Send seen notification for a message
-      function sendSeenForMessage(data) {
-        if (!ws || ws.readyState !== WebSocket.OPEN) return;
-        if (!data.timestamp || !data.channel) return;
-        // Only send if not already seen by this user
-        const msgKey = `${data.channel}_${new Date(data.timestamp).getTime()}`;
-        const seenBy = seenByMap[msgKey] || [];
-        if (seenBy.includes(username)) return;
-        ws.send(
-          JSON.stringify({
-            type: "seen",
-            channel: data.channel,
-            timestamp: data.timestamp,
-            username: username,
-          })
-        );
+      function addSystemMessage(message) {
+        const messageElement = document.createElement("div");
+        messageElement.className = "message system-message";
+        messageElement.innerHTML = `
+                <div class="message-avatar">!</div>
+                <div class="message-content">
+                    <div class="message-header">
+                        <span class="message-author">Sistem</span>
+                        <span class="message-timestamp">${new Date().toLocaleTimeString(
+                          "tr-TR",
+                          { hour: "2-digit", minute: "2-digit" }
+                        )}</span>
+                    </div>
+                    <div class="message-text">${message}</div>
+                </div>
+            `;
+        messages.appendChild(messageElement);
+        messages.scrollTop = messages.scrollHeight;
       }
 
-      // Update seen info in UI
-      function updateSeenInfo(msgKey) {
-        const seenBy = seenByMap[msgKey] || [];
-        const seenDivs = document.querySelectorAll(
-          `.seen-info[data-msgkey="${msgKey}"]`
-        );
-        seenDivs.forEach((div) => {
-          if (seenBy.length === 0) {
-            div.innerHTML = "";
-          } else {
-            div.innerHTML = `<span class="seen-checkmark">✓</span><span class="seen-users">${seenBy.join(
-              ", "
-            )}</span>`;
-          }
-        });
-      }
-
-      // Handle seen update from server
-      function updateSeenStatus(data) {
-        if (!data.channel || !data.timestamp || !data.username) return;
-        const ts = new Date(data.timestamp).getTime();
-        const msgKey = `${data.channel}_${ts}`;
-        if (!seenByMap[msgKey]) seenByMap[msgKey] = [];
-        if (!seenByMap[msgKey].includes(data.username)) {
-          seenByMap[msgKey].push(data.username);
-          updateSeenInfo(msgKey);
+      function addNotification(channelName) {
+        if (unreadCounts[channelName] !== undefined) {
+          unreadCounts[channelName]++;
+          updateNotificationDisplay(channelName);
         }
+      }
+
+      function clearNotifications(channelName) {
+        if (unreadCounts[channelName] !== undefined) {
+          unreadCounts[channelName] = 0;
+          updateNotificationDisplay(channelName);
+        }
+      }
+
+      function updateNotificationDisplay(channelName) {
+        const channel = document.querySelector(
+          `[data-channel="${channelName}"]`
+        );
+        const badge = channel.querySelector(".notification-badge");
+        const count = unreadCounts[channelName];
+
+        if (count > 0) {
+          badge.textContent = count > 99 ? "99+" : count.toString();
+          badge.classList.add("show");
+          channel.classList.add("has-notifications");
+        } else {
+          badge.classList.remove("show");
+          channel.classList.remove("has-notifications");
+        }
+      }
+
+      function escapeHtml(text) {
+        const div = document.createElement("div");
+        div.textContent = text;
+        return div.innerHTML;
       }
 
       clearHistoryBtn.addEventListener("click", () => {
@@ -1832,110 +1763,6 @@
           activeUsersElement.textContent = "aktif kullanıcı";
         }
       }
-
-      // Add missing functions for proper message display
-      function addSystemMessage(message) {
-        const messageElement = document.createElement("div");
-        messageElement.className = "message system-message";
-
-        const timestamp = new Date();
-        const timeString = timestamp.toLocaleTimeString("tr-TR", {
-          hour: "2-digit",
-          minute: "2-digit",
-        });
-
-        messageElement.innerHTML = `
-                <div class="message-avatar">S</div>
-                <div class="message-content">
-                    <div class="message-header">
-                        <span class="message-author">Sistem</span>
-                        <span class="message-timestamp">${timeString}</span>
-                    </div>
-                    <div class="message-text">${escapeHtml(message)}</div>
-                </div>
-            `;
-
-        messages.appendChild(messageElement);
-        messages.scrollTop = messages.scrollHeight;
-      }
-
-      function escapeHtml(text) {
-        const div = document.createElement("div");
-        div.textContent = text;
-        return div.innerHTML;
-      }
-
-      function addNotification(channelName) {
-        if (!unreadCounts[channelName]) {
-          unreadCounts[channelName] = 0;
-        }
-        unreadCounts[channelName]++;
-
-        const badge = document.querySelector(
-          `.notification-badge[data-channel="${channelName}"]`
-        );
-        if (badge) {
-          badge.textContent = unreadCounts[channelName];
-          badge.classList.add("show");
-        }
-      }
-
-      function clearNotifications(channelName) {
-        unreadCounts[channelName] = 0;
-        const badge = document.querySelector(
-          `.notification-badge[data-channel="${channelName}"]`
-        );
-        if (badge) {
-          badge.classList.remove("show");
-          badge.textContent = "0";
-        }
-      }
-
-      // Çıkış yap butonu işlevi
-      const logoutBtn = document.getElementById("logoutBtn");
-      logoutBtn.addEventListener("click", () => {
-        Swal.fire({
-          title: "Çıkış Yap",
-          text: "Çıkış yapmak istediğinize emin misiniz?",
-          icon: "warning",
-          showCancelButton: true,
-          confirmButtonText: "Evet, çıkış yap",
-          cancelButtonText: "İptal",
-          confirmButtonColor: "#dc3545",
-        }).then((result) => {
-          if (result.isConfirmed) {
-            // Close WebSocket connection
-            if (ws) {
-              ws.close();
-            }
-            // Clear saved username
-            localStorage.removeItem("chatliyo_username");
-            // Reset variables
-            username = "";
-            // Show login modal and hide app
-            loginModal.style.display = "flex";
-            app.style.display = "none";
-            // Clear messages
-            messages.innerHTML = "";
-            // Focus username input
-            usernameInput.value = "";
-            usernameInput.focus();
-            // Show logout confirmation
-            Swal.fire({
-              icon: "success",
-              title: "Çıkış Yapıldı",
-              text: "Başarıyla çıkış yaptınız",
-              timer: 1500,
-              showConfirmButton: false,
-              toast: true,
-              position: "top-end",
-            });
-          }
-        });
-      });
-    </script>
-  </body>
-</html>
     </script>
   </body>
 </html>
