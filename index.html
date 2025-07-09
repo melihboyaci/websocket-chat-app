@@ -629,7 +629,7 @@
     </style>
   </head>
   <body>
-    <div id="loginModal" class="login-modal" style="display: none">
+    <div id="loginModal" class="login-modal">
       <div class="login-form">
         <h2 class="login-title">Chatliyo'e Katıl</h2>
         <p class="login-subtitle">
@@ -843,7 +843,6 @@
           initializeAudio();
           connectWebSocket();
         } else {
-          loginModal.style.display = "flex";
           usernameInput.focus();
         }
       });
