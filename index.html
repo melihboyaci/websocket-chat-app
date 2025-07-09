@@ -629,7 +629,7 @@
     </style>
   </head>
   <body>
-    <div id="loginModal" class="login-modal" style="display: none;">
+    <div id="loginModal" class="login-modal">
       <div class="login-form">
         <h2 class="login-title">Chatliyo'e Katıl</h2>
         <p class="login-subtitle">
@@ -840,6 +840,7 @@
           connectWebSocket();
         } else {
           loginModal.style.display = "flex";
+          app.style.display = "none";
           usernameInput.value = "";
           usernameInput.focus();
         }
@@ -1935,7 +1936,6 @@
     </script>
   </body>
 </html>
-      });
     </script>
   </body>
 </html>
