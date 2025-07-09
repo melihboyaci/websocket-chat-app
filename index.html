@@ -843,6 +843,7 @@
           initializeAudio();
           connectWebSocket();
         } else {
+          loginModal.style.display = "flex";
           usernameInput.focus();
         }
       });
@@ -1905,8 +1906,32 @@
           confirmButtonColor: "#dc3545",
         }).then((result) => {
           if (result.isConfirmed) {
+            // Close WebSocket connection
+            if (ws) {
+              ws.close();
+            }
+            // Clear saved username
             localStorage.removeItem("chatliyo_username");
-            location.reload();
+            // Reset variables
+            username = "";
+            // Show login modal and hide app
+            loginModal.style.display = "flex";
+            app.style.display = "none";
+            // Clear messages
+            messages.innerHTML = "";
+            // Focus username input
+            usernameInput.value = "";
+            usernameInput.focus();
+            // Show logout confirmation
+            Swal.fire({
+              icon: "success",
+              title: "Çıkış Yapıldı",
+              text: "Başarıyla çıkış yaptınız",
+              timer: 1500,
+              showConfirmButton: false,
+              toast: true,
+              position: "top-end",
+            });
           }
         });
       });
