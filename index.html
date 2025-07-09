@@ -1683,6 +1683,9 @@
           if (data.username !== username && data.username !== "Sistem") {
             playNotificationSound();
           }
+
+          // --- GÖRÜLDÜ: Otomatik değil, sadece kullanıcı aktifken ve scroll en alttayken gönder ---
+          maybeSendSeenForLatestMessage();
         } else if (data.channel && data.channel !== currentChannel) {
           console.log(
             "Mesaj farklı kanalda, bildirim ekleniyor:",
@@ -1697,23 +1700,27 @@
         }
       }
 
-      // Kullanıcı pencereye tıkladığında ve scroll en alttaysa, tüm görülmemiş mesajlar için görüldü gönder
-      function maybeSendSeenForAllVisibleMessages() {
+      // Kullanıcı pencereye tıkladığında ve scroll en alttaysa görüldü gönder
+      function maybeSendSeenForLatestMessage() {
         if (!ws || ws.readyState !== WebSocket.OPEN) return;
+        // Son mesajı bul
+        const messageDivs = messages.querySelectorAll(".message");
+        if (messageDivs.length === 0) return;
+        const lastDiv = messageDivs[messageDivs.length - 1];
+        const seenDiv = lastDiv.querySelector(".seen-info");
+        if (!seenDiv) return;
+        const msgKey = seenDiv.getAttribute("data-msgkey");
+        if (!msgKey) return;
+        const seenBy = seenByMap[msgKey] || [];
+        if (seenBy.includes(username)) return;
+
         // Scroll en altta mı kontrolü
         const isAtBottom =
-          Math.abs(messages.scrollHeight - messages.scrollTop - messages.clientHeight) < 5;
-        if (!(document.hasFocus() && isAtBottom)) return;
-
-        // Tüm mesajları sırayla kontrol et
-        const messageDivs = messages.querySelectorAll(".message");
-        messageDivs.forEach((div) => {
-          const seenDiv = div.querySelector(".seen-info");
-          if (!seenDiv) return;
-          const msgKey = seenDiv.getAttribute("data-msgkey");
-          if (!msgKey) return;
-          const seenBy = seenByMap[msgKey] || [];
-          if (seenBy.includes(username)) return;
+          Math.abs(
+            messages.scrollHeight - messages.scrollTop - messages.clientHeight
+          ) < 5;
+        if (document.hasFocus() && isAtBottom) {
+          // Son mesajın data'sını bulmak için window'da saklanan son mesajı kullan
           const [channel, ts] = msgKey.split("_");
           const timestamp = new Date(Number(ts));
           ws.send(
@@ -1724,8 +1731,19 @@
               username: username,
             })
           );
-        });
+        }
       }
+
+      // Scroll veya pencere odaklandığında kontrol et
+      messages.addEventListener("scroll", () => {
+        maybeSendSeenForLatestMessage();
+      });
+      window.addEventListener("focus", () => {
+        maybeSendSeenForLatestMessage();
+      });
+      messages.addEventListener("click", () => {
+        maybeSendSeenForLatestMessage();
+      });
 
       // Send seen notification for a message
       function sendSeenForMessage(data) {
@@ -1940,24 +1958,6 @@
             // Clear messages
             messages.innerHTML = "";
             // Focus username input
-            usernameInput.value = "";
-            usernameInput.focus();
-            // Show logout confirmation
-            Swal.fire({
-              icon: "success",
-              title: "Çıkış Yapıldı",
-              text: "Başarıyla çıkış yaptınız",
-              timer: 1500,
-              showConfirmButton: false,
-              toast: true,
-              position: "top-end",
-            });
-          }
-        });
-      });
-    </script>
-  </body>
-</html>
             usernameInput.value = "";
             usernameInput.focus();
             // Show logout confirmation
