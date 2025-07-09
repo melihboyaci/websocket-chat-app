@@ -234,7 +234,12 @@ func (h *Hub) run() {
 			h.mutex.Lock()
 			h.clients[client] = true
 			h.mutex.Unlock()
-			log.Printf("Yeni kullanıcı bağlandı. ID: %s", client.ID)
+			// Kullanıcı adı varsa logda göster
+			if client.Username != "" {
+				log.Printf("Yeni kullanıcı bağlandı. ID: %s, Kullanıcı: %s", client.ID, client.Username)
+			} else {
+				log.Printf("Yeni kullanıcı bağlandı. ID: %s", client.ID)
+			}
 
 			// Broadcast updated user count
 			go h.broadcastUserCount()
