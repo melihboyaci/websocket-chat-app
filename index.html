@@ -842,7 +842,7 @@
           loginModal.style.display = "flex";
           app.style.display = "none";
           usernameInput.value = "";
-          usernameInput.focus();
+          setTimeout(() => { usernameInput.focus(); }, 100);
         }
       });
 
