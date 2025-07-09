@@ -813,10 +813,7 @@
           userAvatar.textContent = username.charAt(0).toUpperCase();
           loginModal.style.display = "none";
           app.style.display = "flex";
-
-          // Initialize audio after user interaction (required by browser policies)
           initializeAudio();
-
           Swal.fire({
             icon: "success",
             title: "Hoş geldin!",
@@ -826,7 +823,6 @@
             toast: true,
             position: "top-end",
           });
-
           connectWebSocket();
         }
       });
@@ -843,7 +839,6 @@
           initializeAudio();
           connectWebSocket();
         } else {
-          loginModal.style.display = "flex";
           usernameInput.value = "";
           usernameInput.focus();
         }
@@ -1934,6 +1929,11 @@
               position: "top-end",
             });
           }
+        });
+      });
+    </script>
+  </body>
+</html>
         });
       });
     </script>
