@@ -829,13 +829,9 @@
 
       // Sayfa yüklendiğinde localStorage'dan kullanıcı adı kontrolü
       window.addEventListener("DOMContentLoaded", () => {
-        // Düzeltme: localStorage anahtarında harf duyarlılığı olabilir!
-        // Doğru anahtarı kullanın ve fallback ekleyin
+        // DEBUG: localStorage içeriğini logla
+        console.log("localStorage chatliyo_username:", localStorage.getItem("chatliyo_username"));
         let savedUsername = localStorage.getItem("chatliyo_username");
-        if (!savedUsername) {
-          // Fallback: büyük/küçük harf hatası varsa diğer anahtarları da kontrol et
-          savedUsername = localStorage.getItem("Chatliyochat_username");
-        }
         if (savedUsername && savedUsername.trim().length > 0) {
           username = savedUsername;
           displayUsername.textContent = username;
@@ -843,7 +839,10 @@
           loginModal.style.display = "none";
           app.style.display = "flex";
           initializeAudio();
-          connectWebSocket();
+          // Sadece bir kez websocket bağlantısı kurulsun
+          if (!ws || ws.readyState === WebSocket.CLOSED) {
+            connectWebSocket();
+          }
         } else {
           loginModal.style.display = "flex";
           app.style.display = "none";
@@ -1981,4 +1980,5 @@
       });
     </script>
   </body>
+</html>
 </html>
