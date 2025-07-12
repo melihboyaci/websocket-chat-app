@@ -829,7 +829,13 @@
 
       // Sayfa yüklendiğinde localStorage'dan kullanıcı adı kontrolü
       window.addEventListener("DOMContentLoaded", () => {
-        const savedUsername = localStorage.getItem("chatliyo_username");
+        // Düzeltme: localStorage anahtarında harf duyarlılığı olabilir!
+        // Doğru anahtarı kullanın ve fallback ekleyin
+        let savedUsername = localStorage.getItem("chatliyo_username");
+        if (!savedUsername) {
+          // Fallback: büyük/küçük harf hatası varsa diğer anahtarları da kontrol et
+          savedUsername = localStorage.getItem("Chatliyochat_username");
+        }
         if (savedUsername && savedUsername.trim().length > 0) {
           username = savedUsername;
           displayUsername.textContent = username;
