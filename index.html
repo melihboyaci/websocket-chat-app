@@ -832,6 +832,7 @@
         // DEBUG: localStorage içeriğini logla
         console.log("localStorage chatliyo_username:", localStorage.getItem("chatliyo_username"));
         let savedUsername = localStorage.getItem("chatliyo_username");
+        // Sadece ilk yüklemede bir kez çalışsın
         if (savedUsername && savedUsername.trim().length > 0) {
           username = savedUsername;
           displayUsername.textContent = username;
@@ -839,10 +840,8 @@
           loginModal.style.display = "none";
           app.style.display = "flex";
           initializeAudio();
-          // Sadece bir kez websocket bağlantısı kurulsun
-          if (!ws || ws.readyState === WebSocket.CLOSED) {
-            connectWebSocket();
-          }
+          connectWebSocket();
+          // usernameInput'a focus verme!
         } else {
           loginModal.style.display = "flex";
           app.style.display = "none";
@@ -1980,5 +1979,6 @@
       });
     </script>
   </body>
+</html>
 </html>
 </html>
