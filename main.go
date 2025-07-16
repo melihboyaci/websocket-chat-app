@@ -19,15 +19,24 @@ import (
 
 // Message represents a chat message
 type Message struct {
-	Username  string    `json:"username"`
-	Message   string    `json:"message"`
-	Timestamp time.Time `json:"timestamp"`
-	Channel   string    `json:"channel"`
-	Type      string    `json:"type,omitempty"` // "text", "file", "image", "seen"
-	FileURL   string    `json:"fileUrl,omitempty"`
-	FileName  string    `json:"fileName,omitempty"`
-	FileSize  int64     `json:"fileSize,omitempty"`
-	SeenBy    []string  `json:"seenBy,omitempty"` // Kullanıcı adları
+	Username     string    `json:"username"`
+	Message      string    `json:"message"`
+	Timestamp    time.Time `json:"timestamp"`
+	Channel      string    `json:"channel"`
+	Type         string    `json:"type,omitempty"` // "text", "file", "image", "seen"
+	FileURL      string    `json:"fileUrl,omitempty"`
+	FileName     string    `json:"fileName,omitempty"`
+	FileSize     int64     `json:"fileSize,omitempty"`
+	SeenBy       []string  `json:"seenBy,omitempty"` // Kullanıcı adları
+	ReplyTo      *ReplyInfo `json:"replyTo,omitempty"` // Yanıtlanan mesaj bilgisi
+}
+
+// ReplyInfo contains information about the message being replied to
+type ReplyInfo struct {
+	MessageID string `json:"messageId"`
+	Username  string `json:"username"`
+	Message   string `json:"message"`
+	Type      string `json:"type,omitempty"`
 }
 
 // Client represents a connected WebSocket client

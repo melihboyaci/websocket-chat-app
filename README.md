@@ -11,6 +11,10 @@ A real-time chat application built with Go backend and vanilla JavaScript fronte
 - 🔄 Automatic reconnection on connection loss
 - 🐳 Docker support for easy deployment
 - 📱 Responsive design
+- 💾 File sharing support (images, documents)
+- 👁️ Message seen indicators
+- 🔊 Customizable notification sounds
+- 💬 Reply to messages functionality
 
 ## Technology Stack
 
@@ -132,6 +136,13 @@ Messages are sent as JSON objects:
 - Instant message delivery using WebSocket protocol
 - Automatic connection status monitoring
 - Reconnection mechanism with exponential backoff
+
+### Message Features
+
+- Reply to any message with context preservation
+- File sharing with drag-and-drop support
+- Message seen indicators showing who viewed messages
+- Rich text display with proper escaping
 
 ### Multi-channel Support
 
