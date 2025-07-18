@@ -239,6 +239,122 @@ func (h *Hub) broadcastUserCount() {
 	h.mutex.RUnlock()
 }
 
+func (c *Client) writePump() {
+	ticker := time.NewTicker(54 * time.Second)
+	defer func() {
+		ticker.Stop()
+		c.Conn.Close()
+	}()
+	for {
+		select {
+		case message, ok := <-c.Send:
+			c.Conn.SetWriteDeadline(time.Now().Add(10 * time.Second))
+			if !ok {
+				c.Conn.WriteMessage(websocket.CloseMessage, []byte{})
+				return
+			}
+
+			w, err := c.Conn.NextWriter(websocket.TextMessage)
+			if err != nil {
+				return
+			}
+			w.Write(message)
+
+			// Add queued chat messages to the current WebSocket message.
+			n := len(c.Send)
+			for i := 0; i < n; i++ {
+				w.Write([]byte{'\n'})
+				w.Write(<-c.Send)
+			}
+
+			if err := w.Close(); err != nil {
+				return
+			}
+		case <-ticker.C:
+			c.Conn.SetWriteDeadline(time.Now().Add(10 * time.Second))
+			if err := c.Conn.WriteMessage(websocket.PingMessage, nil); err != nil {
+				return
+			}
+		}
+	}
+}
+
+func (c *Client) readPump(hub *Hub) {
+	defer func() {
+		hub.unregister <- c
+		c.Conn.Close()
+	}()
+	c.Conn.SetReadLimit(1024) // Increase from 512 to 1024 bytes
+	c.Conn.SetReadDeadline(time.Now().Add(60 * time.Second))
+	c.Conn.SetPongHandler(func(string) error {
+		c.Conn.SetReadDeadline(time.Now().Add(60 * time.Second))
+		return nil
+	})
+	for {
+		_, messageBytes, err := c.Conn.ReadMessage()
+		if err != nil {
+			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
+				log.Printf("WebSocket hatası: %v", err)
+			}
+			break
+		}
+
+		// Parse JSON message
+		var msg Message
+		if err := json.Unmarshal(messageBytes, &msg); err != nil {
+			log.Printf("Mesaj parse hatası: %v", err)
+			// Fallback to plain text
+			msg = Message{
+				Username:  c.Username,
+				Message:   string(messageBytes),
+				Timestamp: time.Now(),
+				Channel:   "genel",
+				Type:      "text",
+			}
+		} else {
+			// Update client username and log if first time setting
+			if msg.Username != "" && c.Username == "" {
+				c.Username = msg.Username
+				log.Printf("Kullanıcı adı belirlendi. ID: %s, Kullanıcı: %s", c.ID, c.Username)
+			} else if msg.Username != "" {
+				c.Username = msg.Username
+			}
+
+			// Set timestamp and default channel for regular messages
+			if msg.Type != "seen" {
+				// Always set server timestamp for new messages
+				if msg.Message != "__GET_RECENT_MESSAGES__" {
+					msg.Timestamp = time.Now()
+				}
+			}
+			if msg.Channel == "" {
+				msg.Channel = "genel"
+			}
+			if msg.Type == "" {
+				msg.Type = "text"
+			}
+
+			// Handle special request for recent messages
+			if msg.Message == "__GET_RECENT_MESSAGES__" {
+				log.Printf("Geçmiş mesajlar istendi: kanal=%s, kullanıcı=%s", msg.Channel, msg.Username)
+				go hub.sendRecentMessages(c, msg.Channel)
+				continue
+			}
+		}
+
+		log.Printf("Gelen mesaj: %s, Tip: %s, Kullanıcı: %s, Kanal: %s", msg.Message, msg.Type, msg.Username, msg.Channel)
+
+		// Broadcast the enriched message
+		enrichedMessage, err := json.Marshal(msg)
+		if err != nil {
+			log.Printf("Mesaj JSON encode hatası: %v", err)
+			continue
+		}
+
+		hub.broadcast <- enrichedMessage
+	}
+}
+
 func (h *Hub) run() {
 	for {
 		select {
@@ -246,12 +362,8 @@ func (h *Hub) run() {
 			h.mutex.Lock()
 			h.clients[client] = true
 			h.mutex.Unlock()
-			// Kullanıcı adı varsa logda göster
-			if client.Username != "" {
-				log.Printf("Yeni kullanıcı bağlandı. ID: %s, Kullanıcı: %s", client.ID, client.Username)
-			} else {
-				log.Printf("Yeni kullanıcı bağlandı. ID: %s", client.ID)
-			}
+			// İlk bağlantıda kullanıcı adı henüz bilinmiyor
+			log.Printf("Yeni bağlantı kuruldu. ID: %s", client.ID)
 
 			// Broadcast updated user count
 			go h.broadcastUserCount()
@@ -262,9 +374,10 @@ func (h *Hub) run() {
 				delete(h.clients, client)
 				close(client.Send)
 				if client.Username != "" {
-					log.Printf("Kullanıcı ayrıldı: %s", client.Username)
+					log.Printf("Kullanıcı ayrıldı. ID: %s, Kullanıcı: %s", client.ID, client.Username)
+				} else {
+					log.Printf("Bağlantı kapatıldı. ID: %s", client.ID)
 				}
-				log.Printf("Bağlantı kapatıldı. ID: %s", client.ID)
 			}
 			h.mutex.Unlock()
 
@@ -391,8 +504,11 @@ func (c *Client) readPump(hub *Hub) {
 				Type:      "text",
 			}
 		} else {
-			// Update client username
-			if msg.Username != "" {
+			// Update client username and log if first time setting
+			if msg.Username != "" && c.Username == "" {
+				c.Username = msg.Username
+				log.Printf("Kullanıcı adı belirlendi. ID: %s, Kullanıcı: %s", c.ID, c.Username)
+			} else if msg.Username != "" {
 				c.Username = msg.Username
 			}
 

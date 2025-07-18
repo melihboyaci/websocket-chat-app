@@ -87,11 +87,13 @@ websocket-chat-app/
    - Enter your desired username in the login modal
    - Click "Sohbete Katıl" to join
    - Your username will be saved and remembered across browser sessions
+   - Server logs will show connection with your username
 
 2. **Switch Channels**
 
-   - Click on different channels in the sidebar (genel, rastgele, oyun)
+   - Click on different channels in the sidebar (genel, numeroloji)
    - Each channel maintains separate message history
+   - Numerology channel provides special analysis tools
 
 3. **Send Messages**
 
@@ -99,14 +101,21 @@ websocket-chat-app/
    - Press Enter or click "Gönder" to send
    - Messages appear in real-time for all connected users
 
-4. **User Interface**
+4. **Numerology Analysis**
+
+   - Switch to #numeroloji channel
+   - Fill in the form with name and birth date
+   - Click "Analiz Et" to get numerology reading
+   - Results are shared in the channel
+
+5. **User Interface**
 
    - Server list on the left (Discord-style)
    - Channel list in the middle sidebar
    - Main chat area with message history
    - User panel at the bottom of sidebar with logout option
 
-5. **Logout**
+6. **Logout**
    - Click "Çıkış Yap" button to logout and clear saved username
    - You'll be prompted to enter username again on next visit
 
