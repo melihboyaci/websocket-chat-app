@@ -1327,6 +1327,45 @@
         }
       }
 
+      // Add function to send seen message automatically
+      function maybeSendSeenForLatestMessage() {
+        if (!lastMessageTimestamps[currentChannel] || !username) return;
+        
+        // Check if user is at bottom of messages (within 100px)
+        const isAtBottom = messages.scrollHeight - messages.scrollTop - messages.clientHeight < 100;
+        
+        // Only send seen if user is at bottom and document is visible
+        if (isAtBottom && !document.hidden) {
+          const seenMessage = {
+            username: username,
+            message: "",
+            timestamp: lastMessageTimestamps[currentChannel].toISOString(),
+            channel: currentChannel,
+            type: "seen"
+          };
+          
+          if (ws && ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify(seenMessage));
+          }
+        }
+      }
+
+      // Add visibility change listener to send seen when user returns to tab
+      document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) {
+          setTimeout(maybeSendSeenForLatestMessage, 500);
+        }
+      });
+
+      // Add scroll listener to messages container
+      messages.addEventListener('scroll', () => {
+        // Debounce scroll events
+        clearTimeout(window.scrollTimeout);
+        window.scrollTimeout = setTimeout(() => {
+          maybeSendSeenForLatestMessage();
+        }, 200);
+      });
+
       // Enhanced displayMessage function to handle file messages, seen, and replies
       function displayMessage(data) {
         if (data.message === "__GET_RECENT_MESSAGES__") {
@@ -1405,88 +1444,60 @@
 
             if (data.type === "image") {
               fileContent = `
-                            <div class="file-message">
-                                <img src="${data.fileUrl}" alt="${
-                data.fileName
-              }" class="file-preview" onclick="window.open('${
-                data.fileUrl
-              }', '_blank')">
-                                <div class="file-info">
-                                    <span class="file-icon">🖼️</span>
-                                    <a href="${
-                                      data.fileUrl
-                                    }" target="_blank" class="file-download">${
-                data.fileName
-              }</a>
-                                    <span>(${formatFileSize(
-                                      data.fileSize
-                                    )})</span>
-                                </div>
-                            </div>
-                        `;
+                <div class="file-message">
+                  <img src="${data.fileUrl}" alt="${data.fileName}" class="file-preview" onclick="window.open('${data.fileUrl}', '_blank')">
+                  <div class="file-info">
+                    <span class="file-icon">🖼️</span>
+                    <a href="${data.fileUrl}" target="_blank" class="file-download">${data.fileName}</a>
+                    <span>(${formatFileSize(data.fileSize)})</span>
+                  </div>
+                </div>
+              `;
             } else {
               const fileIcon = getFileIcon(data.fileName);
               fileContent = `
-                            <div class="file-message">
-                                <div class="file-info">
-                                    <span class="file-icon">${fileIcon}</span>
-                                    <a href="${
-                                      data.fileUrl
-                                    }" target="_blank" class="file-download">${
-                data.fileName
-              }</a>
-                                    <span>(${formatFileSize(
-                                      data.fileSize
-                                    )})</span>
-                                </div>
-                            </div>
-                        `;
+                <div class="file-message">
+                  <div class="file-info">
+                    <span class="file-icon">${fileIcon}</span>
+                    <a href="${data.fileUrl}" target="_blank" class="file-download">${data.fileName}</a>
+                    <span>(${formatFileSize(data.fileSize)})</span>
+                  </div>
+                </div>
+              `;
             }
 
             messageContent = `
-                        <div class="message-avatar">${data.username
-                          .charAt(0)
-                          .toUpperCase()}</div>
-                        <div class="message-content">
-                            <div class="message-header">
-                                <span class="message-author">${
-                                  data.username
-                                }</span>
-                                <span class="message-timestamp">${timeString}</span>
-                            </div>
-                            ${replyContent}
-                            <div class="message-text">${escapeHtml(
-                              data.message
-                            )}</div>
-                            ${fileContent}
-                            <div class="seen-info" data-msgkey="${msgKey}"></div>
-                            <div class="message-actions">
-                                <button class="reply-btn" onclick="startReply('${messageId}', '${escapeHtml(data.username)}', '${escapeHtml(data.message)}', '${data.type || 'text'}')">Yanıtla</button>
-                            </div>
-                        </div>
-                    `;
+              <div class="message-avatar">${data.username.charAt(0).toUpperCase()}</div>
+              <div class="message-content">
+                <div class="message-header">
+                  <span class="message-author">${escapeHtml(data.username)}</span>
+                  <span class="message-timestamp">${timeString}</span>
+                </div>
+                ${replyContent}
+                <div class="message-text">${escapeHtml(data.message)}</div>
+                ${fileContent}
+                <div class="seen-info" data-msgkey="${msgKey}"></div>
+                <div class="message-actions">
+                  <button class="reply-btn" onclick="startReply('${messageId}', '${escapeHtml(data.username)}', '${escapeHtml(data.message)}', '${data.type || 'text'}')">Yanıtla</button>
+                </div>
+              </div>
+            `;
           } else {
             messageContent = `
-                        <div class="message-avatar">${data.username
-                          .charAt(0)
-                          .toUpperCase()}</div>
-                        <div class="message-content">
-                            <div class="message-header">
-                                <span class="message-author">${escapeHtml(
-                                  data.username
-                                )}</span>
-                                <span class="message-timestamp">${timeString}</span>
-                            </div>
-                            ${replyContent}
-                            <div class="message-text">${escapeHtml(
-                              data.message
-                            )}</div>
-                            <div class="seen-info" data-msgkey="${msgKey}"></div>
-                            <div class="message-actions">
-                                <button class="reply-btn" onclick="startReply('${messageId}', '${escapeHtml(data.username)}', '${escapeHtml(data.message)}', '${data.type || 'text'}')">Yanıtla</button>
-                            </div>
-                        </div>
-                    `;
+              <div class="message-avatar">${data.username.charAt(0).toUpperCase()}</div>
+              <div class="message-content">
+                <div class="message-header">
+                  <span class="message-author">${escapeHtml(data.username)}</span>
+                  <span class="message-timestamp">${timeString}</span>
+                </div>
+                ${replyContent}
+                <div class="message-text">${escapeHtml(data.message)}</div>
+                <div class="seen-info" data-msgkey="${msgKey}"></div>
+                <div class="message-actions">
+                  <button class="reply-btn" onclick="startReply('${messageId}', '${escapeHtml(data.username)}', '${escapeHtml(data.message)}', '${data.type || 'text'}')">Yanıtla</button>
+                </div>
+              </div>
+            `;
           }
 
           messageElement.innerHTML = messageContent;
@@ -1501,8 +1512,10 @@
             playNotificationSound();
           }
 
-          // --- GÖRÜLDÜ: Otomatik değil, sadece kullanıcı aktifken ve scroll en alttayken gönder ---
-          maybeSendSeenForLatestMessage();
+          // Auto-send seen message for latest message
+          setTimeout(() => {
+            maybeSendSeenForLatestMessage();
+          }, 1000);
         } else if (data.channel && data.channel !== currentChannel) {
           // Add notification for messages in other channels
           if (data.username !== username) {
@@ -1596,16 +1609,18 @@
               position: "top-end",
             });
           }
-        } else if (!username) {
+        } else if (!ws || ws.readyState !== WebSocket.OPEN) {
+          console.log("WebSocket bağlantısı yok, yeniden bağlanılıyor...");
           Swal.fire({
             icon: "warning",
-            title: "Kullanıcı Adı Gerekli",
-            text: "Mesaj göndermek için önce giriş yapmalısınız.",
+            title: "Bağlantı Kesildi",
+            text: "Yeniden bağlanmaya çalışılıyor...",
             timer: 2000,
             showConfirmButton: false,
             toast: true,
             position: "top-end",
           });
+          connectWebSocket();
         }
       }
 
@@ -2112,116 +2127,6 @@
         xhr.send(formData);
       }
 
-      // Update seen info in UI
-      function updateSeenInfo(msgKey) {
-        const seenBy = seenByMap[msgKey] || [];
-        const seenDivs = document.querySelectorAll(
-          `.seen-info[data-msgkey="${msgKey}"]`
-        );
-        seenDivs.forEach((div) => {
-          if (seenBy.length === 0) {
-            div.innerHTML = "";
-          } else {
-            div.innerHTML = `<span class="seen-checkmark">✓</span><span class="seen-users">${seenBy.join(
-              ", "
-            )}</span>`;
-          }
-        });
-      }
-
-      // Handle seen update from server
-      function updateSeenStatus(data) {
-        if (!data.channel || !data.timestamp || !data.username) return;
-        const ts = new Date(data.timestamp).getTime();
-        const msgKey = `${data.channel}_${ts}`;
-        if (!seenByMap[msgKey]) seenByMap[msgKey] = [];
-        if (!seenByMap[msgKey].includes(data.username)) {
-          seenByMap[msgKey].push(data.username);
-          updateSeenInfo(msgKey);
-        }
-      }
-
-      clearHistoryBtn.addEventListener("click", () => {
-        Swal.fire({
-          title: "Geçmişi Temizle",
-          text: `#${currentChannel} kanalının geçmişini temizlemek istediğinize emin misiniz?`,
-          icon: "warning",
-          showCancelButton: true,
-          confirmButtonText: "Evet, Temizle",
-          cancelButtonText: "İptal",
-          confirmButtonColor: "#dc3545",
-        }).then((result) => {
-          if (result.isConfirmed) {
-            fetch("/clear-history", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({ channel: currentChannel }),
-            })
-              .then((res) => {
-                if (res.ok) {
-                  messages.innerHTML = "";
-
-                  Swal.fire({
-                    icon: "success",
-                    title: "Başarılı!",
-                    text: "Geçmiş mesajlar temizlendi.",
-                    timer: 2000,
-                    showConfirmButton: false,
-                    toast: true,
-                    position: "top-end",
-                  });
-                } else {
-                  Swal.fire({
-                    icon: "error",
-                    title: "Hata!",
-                    text: "Geçmiş temizlenemedi.",
-                    timer: 2000,
-                    showConfirmButton: false,
-                    toast: true,
-                    position: "top-end",
-                  });
-                }
-              })
-              .catch(() => {
-                Swal.fire({
-                  icon: "error",
-                  title: "Hata!",
-                  text: "Sunucu hatası.",
-                  timer: 2000,
-                  showConfirmButton: false,
-                  toast: true,
-                  position: "top-end",
-                });
-              });
-          }
-        });
-      });
-
-      sendButton.addEventListener("click", sendMessage);
-      messageInput.addEventListener("keypress", (e) => {
-        if (e.key === "Enter") {
-          sendMessage();
-        }
-      });
-
-      usernameInput.focus();
-
-      function updateActiveUserCount(count) {
-        activeUsersCount.textContent = count;
-
-        // Update text based on count
-        const activeUsersElement = document.querySelector(
-          ".active-users span:last-child"
-        );
-        if (count === 1) {
-          activeUsersElement.textContent = "aktif kullanıcı";
-        } else {
-          activeUsersElement.textContent = "aktif kullanıcı";
-        }
-      }
-
       // Add missing functions for proper message display
       function addSystemMessage(message) {
         const messageElement = document.createElement("div");
@@ -2236,6 +2141,101 @@
         messageElement.innerHTML = `
                 <div class="message-avatar">S</div>
                 <div class="message-content">
+                    <div class="message-header">
+                        <span class="message-author">Sistem</span>
+                        <span class="message-timestamp">${timeString}</span>
+                    </div>
+                    <div class="message-text">${escapeHtml(message)}</div>
+                </div>
+            `;
+
+        messages.appendChild(messageElement);
+        messages.scrollTop = messages.scrollHeight;
+      }
+
+      function escapeHtml(text) {
+        const div = document.createElement("div");
+        div.textContent = text;
+        return div.innerHTML;
+      }
+
+      function addNotification(channelName) {
+        if (!unreadCounts[channelName]) {
+          unreadCounts[channelName] = 0;
+        }
+        unreadCounts[channelName]++;
+
+        const badge = document.querySelector(
+          `.notification-badge[data-channel="${channelName}"]`
+        );
+        if (badge) {
+          badge.textContent = unreadCounts[channelName];
+          badge.classList.add("show");
+        }
+      }
+
+      function clearNotifications(channelName) {
+        unreadCounts[channelName] = 0;
+        const badge = document.querySelector(
+          `.notification-badge[data-channel="${channelName}"]`
+        );
+        if (badge) {
+          badge.classList.remove("show");
+          badge.textContent = "0";
+        }
+      }
+
+      // Çıkış yap butonu işlevi
+      const logoutBtn = document.getElementById("logoutBtn");
+      logoutBtn.addEventListener("click", () => {
+        Swal.fire({
+          title: "Çıkış Yap",
+          text: "Çıkış yapmak istediğinize emin misiniz?",
+          icon: "warning",
+          showCancelButton: true,
+          confirmButtonText: "Evet, çıkış yap",
+          cancelButtonText: "İptal",
+          confirmButtonColor: "#dc3545",
+        }).then((result) => {
+          if (result.isConfirmed) {
+            // Close WebSocket connection
+            if (ws) {
+              ws.close();
+            }
+            // Clear saved username
+            localStorage.removeItem("chatliyo_username");
+            // Reset variables
+            username = "";
+            // Show login modal and hide app
+            loginModal.style.display = "flex";
+            app.style.display = "none";
+            // Clear messages
+            messages.innerHTML = "";
+            // Focus username input
+            usernameInput.value = "";
+            usernameInput.focus();
+            // Show logout confirmation
+            Swal.fire({
+              icon: "success",
+              title: "Çıkış Yapıldı",
+              text: "Başarıyla çıkış yaptınız",
+              timer: 1500,
+              showConfirmButton: false,
+              toast: true,
+              position: "top-end",
+            });
+          }
+        });
+      });
+
+      // Make functions global for onclick handlers
+      window.startReply = startReply;
+      window.cancelReply = cancelReply;
+      window.submitNumerology = submitNumerology;
+      window.requestRecentMessages = requestRecentMessages;
+    </script>
+  </body>
+</html>
                     <div class="message-header">
                         <span class="message-author">Sistem</span>
                         <span class="message-timestamp">${timeString}</span>
