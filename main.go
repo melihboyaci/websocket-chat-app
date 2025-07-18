@@ -431,122 +431,6 @@ func (h *Hub) run() {
 	}
 }
 
-func (c *Client) writePump() {
-	ticker := time.NewTicker(54 * time.Second)
-	defer func() {
-		ticker.Stop()
-		c.Conn.Close()
-	}()
-	for {
-		select {
-		case message, ok := <-c.Send:
-			c.Conn.SetWriteDeadline(time.Now().Add(10 * time.Second))
-			if !ok {
-				c.Conn.WriteMessage(websocket.CloseMessage, []byte{})
-				return
-			}
-
-			w, err := c.Conn.NextWriter(websocket.TextMessage)
-			if err != nil {
-				return
-			}
-			w.Write(message)
-
-			// Add queued chat messages to the current WebSocket message.
-			n := len(c.Send)
-			for i := 0; i < n; i++ {
-				w.Write([]byte{'\n'})
-				w.Write(<-c.Send)
-			}
-
-			if err := w.Close(); err != nil {
-				return
-			}
-		case <-ticker.C:
-			c.Conn.SetWriteDeadline(time.Now().Add(10 * time.Second))
-			if err := c.Conn.WriteMessage(websocket.PingMessage, nil); err != nil {
-				return
-			}
-		}
-	}
-}
-
-func (c *Client) readPump(hub *Hub) {
-	defer func() {
-		hub.unregister <- c
-		c.Conn.Close()
-	}()
-	c.Conn.SetReadLimit(1024) // Increase from 512 to 1024 bytes
-	c.Conn.SetReadDeadline(time.Now().Add(60 * time.Second))
-	c.Conn.SetPongHandler(func(string) error {
-		c.Conn.SetReadDeadline(time.Now().Add(60 * time.Second))
-		return nil
-	})
-	for {
-		_, messageBytes, err := c.Conn.ReadMessage()
-		if err != nil {
-			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-				log.Printf("WebSocket hatası: %v", err)
-			}
-			break
-		}
-
-		// Parse JSON message
-		var msg Message
-		if err := json.Unmarshal(messageBytes, &msg); err != nil {
-			log.Printf("Mesaj parse hatası: %v", err)
-			// Fallback to plain text
-			msg = Message{
-				Username:  c.Username,
-				Message:   string(messageBytes),
-				Timestamp: time.Now(),
-				Channel:   "genel",
-				Type:      "text",
-			}
-		} else {
-			// Update client username and log if first time setting
-			if msg.Username != "" && c.Username == "" {
-				c.Username = msg.Username
-				log.Printf("Kullanıcı adı belirlendi. ID: %s, Kullanıcı: %s", c.ID, c.Username)
-			} else if msg.Username != "" {
-				c.Username = msg.Username
-			}
-
-			// Set timestamp and default channel for regular messages
-			if msg.Type != "seen" {
-				// Always set server timestamp for new messages
-				if msg.Message != "__GET_RECENT_MESSAGES__" {
-					msg.Timestamp = time.Now()
-				}
-			}
-			if msg.Channel == "" {
-				msg.Channel = "genel"
-			}
-			if msg.Type == "" {
-				msg.Type = "text"
-			}
-
-			// Handle special request for recent messages
-			if msg.Message == "__GET_RECENT_MESSAGES__" {
-				log.Printf("Geçmiş mesajlar istendi: kanal=%s, kullanıcı=%s", msg.Channel, msg.Username)
-				go hub.sendRecentMessages(c, msg.Channel)
-				continue
-			}
-		}
-
-		log.Printf("Gelen mesaj: %s, Tip: %s, Kullanıcı: %s, Kanal: %s", msg.Message, msg.Type, msg.Username, msg.Channel)
-
-		// Broadcast the enriched message
-		enrichedMessage, err := json.Marshal(msg)
-		if err != nil {
-			log.Printf("Mesaj JSON encode hatası: %v", err)
-			continue
-		}
-
-		hub.broadcast <- enrichedMessage
-	}
-}
-
 func serveWS(hub *Hub, w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
@@ -812,6 +696,122 @@ func handleFileUpload(hub *Hub, w http.ResponseWriter, r *http.Request) {
 		// Dosya uzantısından MIME type'ı tahmin et
 		ext := strings.ToLower(filepath.Ext(header.Filename))
 		switch ext {
+		case ".jpg", ".jpeg":
+			contentType = "image/jpeg"
+		case ".png":
+			contentType = "image/png"
+		case ".gif":
+			contentType = "image/gif"
+		case ".pdf":
+			contentType = "application/pdf"
+		case ".txt":
+			contentType = "text/plain"
+		case ".zip":
+			contentType = "application/zip"
+		case ".doc":
+			contentType = "application/msword"
+		case ".docx":
+			contentType = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+		case ".xls":
+			contentType = "application/vnd.ms-excel"
+		case ".xlsx":
+			contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+		default:
+			log.Printf("Bilinmeyen dosya uzantısı: %s", ext)
+			http.Error(w, "Unsupported file type", http.StatusBadRequest)
+			return
+		}
+	}
+
+	if !allowedTypes[contentType] {
+		log.Printf("İzin verilmeyen dosya tipi: %s", contentType)
+		http.Error(w, "File type not allowed", http.StatusBadRequest)
+		return
+	}
+
+	// Generate unique filename with timestamp and sanitization
+	timestamp := time.Now().Unix()
+	ext := filepath.Ext(header.Filename)
+	baseName := strings.TrimSuffix(header.Filename, ext)
+	// Dosya adını temizle (güvenlik için)
+	baseName = strings.ReplaceAll(baseName, " ", "_")
+	baseName = strings.ReplaceAll(baseName, "..", "")
+	baseName = strings.ReplaceAll(baseName, "/", "_")
+	baseName = strings.ReplaceAll(baseName, "\\", "_")
+
+	fileName := fmt.Sprintf("%d_%s%s", timestamp, baseName, ext)
+
+	// Create uploads directory structure
+	uploadsDir := "./uploads"
+	dateDir := time.Now().Format("2006-01-02") // YYYY-MM-DD format
+	fullUploadDir := filepath.Join(uploadsDir, dateDir)
+
+	if err := os.MkdirAll(fullUploadDir, 0755); err != nil {
+		log.Printf("Upload klasörü oluşturma hatası: %v", err)
+		http.Error(w, "Error creating uploads directory", http.StatusInternalServerError)
+		return
+	}
+
+	// Create file on server
+	filePath := filepath.Join(fullUploadDir, fileName)
+	dst, err := os.Create(filePath)
+	if err != nil {
+		log.Printf("Dosya oluşturma hatası: %v", err)
+		http.Error(w, "Error saving file", http.StatusInternalServerError)
+		return
+	}
+	defer dst.Close()
+
+	// Copy file content
+	written, err := io.Copy(dst, file)
+	if err != nil {
+		log.Printf("Dosya kopyalama hatası: %v", err)
+		http.Error(w, "Error saving file", http.StatusInternalServerError)
+		return
+	}
+
+	log.Printf("Dosya başarıyla kaydedildi: %s (%d bytes)", filePath, written)
+
+	// Determine message type
+	messageType := "file"
+	if strings.HasPrefix(contentType, "image/") {
+		messageType = "image"
+	}
+
+	// Create file message
+	fileURL := fmt.Sprintf("/uploads/%s/%s", dateDir, fileName)
+	fileMessage := Message{
+		Username:  username,
+		Message:   fmt.Sprintf("Dosya paylaştı: %s", header.Filename),
+		Timestamp: time.Now(),
+		Channel:   channel,
+		Type:      messageType,
+		FileURL:   fileURL,
+		FileName:  header.Filename,
+		FileSize:  header.Size,
+	}
+
+	// Broadcast file message
+	messageJSON, err := json.Marshal(fileMessage)
+	if err != nil {
+		log.Printf("Dosya mesajı marshalling hatası: %v", err)
+		http.Error(w, "Error processing file message", http.StatusInternalServerError)
+		return
+	}
+
+	hub.broadcast <- messageJSON
+
+	// Return success response
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"success":  true,
+		"message":  "File uploaded successfully",
+		"fileUrl":  fileURL,
+		"fileName": header.Filename,
+		"fileSize": header.Size,
+		"filePath": filePath, // Sunucudaki tam dosya yolu (log için)
+	})
+}
 		case ".jpg", ".jpeg":
 			contentType = "image/jpeg"
 		case ".png":
