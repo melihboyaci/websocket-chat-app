@@ -5,7 +5,7 @@ A real-time chat application built with Go backend and vanilla JavaScript fronte
 ## Features
 
 - 🚀 Real-time messaging with WebSocket connections
-- 💬 Multiple chat channels (genel, rastgele, oyun)
+- 💬 Multiple chat channels (genel, numeroloji)
 - 👤 User authentication with custom usernames
 - 🎨 Discord-inspired modern UI design
 - 🔄 Automatic reconnection on connection loss
@@ -16,13 +16,17 @@ A real-time chat application built with Go backend and vanilla JavaScript fronte
 - 🔊 Customizable notification sounds
 - 💬 Reply to messages functionality
 - 🔮 Numerology analysis integration
+- 📊 Redis message persistence
 
 ## Technology Stack
 
 - **Backend**: Go with Gorilla WebSocket
 - **Frontend**: HTML5, CSS3, Vanilla JavaScript
 - **WebSocket**: Real-time bidirectional communication
+- **Database**: Redis for message persistence
+- **API Integration**: Numerology API service
 - **Containerization**: Docker & Docker Compose
+- **Reverse Proxy**: Nginx for SSL termination
 
 ## Project Structure
 

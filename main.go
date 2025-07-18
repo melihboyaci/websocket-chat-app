@@ -210,6 +210,20 @@ func (h *Hub) sendRecentMessages(client *Client, channel string) {
 	}
 }
 
+// Add missing requestRecentMessages function
+func requestRecentMessages(channel string) {
+	if ws && ws.readyState === WebSocket.OPEN {
+		const requestMessage = {
+			username: username,
+			message: "__GET_RECENT_MESSAGES__",
+			channel: channel,
+			type: "request"
+		};
+		ws.send(JSON.stringify(requestMessage));
+	}
+}
+
+
 // Broadcast active user count to all clients
 func (h *Hub) broadcastUserCount() {
 	h.mutex.RLock()

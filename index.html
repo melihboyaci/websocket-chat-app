@@ -1116,29 +1116,24 @@
           };
 
           ws.onmessage = (event) => {
-            console.log("WebSocket mesajı alındı:", event.data);
             const lines = event.data.split("\n");
             for (const line of lines) {
               if (!line.trim()) continue;
               try {
                 const data = JSON.parse(line);
-                console.log("Parse edilen mesaj:", data);
 
                 // Handle user count updates
                 if (data.type === "user_count") {
-                  console.log("Kullanıcı sayısı güncellendi:", data.count);
                   continue;
                 }
                 // Handle seen updates
                 if (data.type === "seen") {
-                  console.log("Görüldü güncellemesi:", data);
                   updateSeenStatus(data);
                   continue;
                 }
-                console.log("Mesaj görüntüleniyor:", data);
                 displayMessage(data);
               } catch (error) {
-                console.error("Mesaj parse hatası:", error, "Raw data:", line);
+                console.error("Mesaj parse hatası:", error);
                 displayMessage({
                   username: "Anonim",
                   message: line,
@@ -1325,23 +1320,27 @@
         });
       }
 
+      // Add missing requestRecentMessages function
+      function requestRecentMessages(channel) {
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          const requestMessage = {
+            username: username,
+            message: "__GET_RECENT_MESSAGES__",
+            channel: channel,
+            type: "request"
+          };
+          ws.send(JSON.stringify(requestMessage));
+        }
+      }
+
       // Enhanced displayMessage function to handle file messages, seen, and replies
       function displayMessage(data) {
-        console.log("displayMessage çağrıldı:", data);
-
         if (data.message === "__GET_RECENT_MESSAGES__") {
-          console.log("Geçmiş mesajlar isteği, atlanıyor");
           return;
         }
 
         // Only display messages for current channel or system messages
         if (!data.channel || data.channel === currentChannel) {
-          console.log(
-            "Mesaj mevcut kanalda görüntüleniyor:",
-            data.channel,
-            currentChannel
-          );
-
           const messageElement = document.createElement("div");
           messageElement.className = "message";
           
@@ -2331,14 +2330,15 @@
           }
         });
       });
+
+      // Make functions global for onclick handlers
+      window.startReply = startReply;
+      window.cancelReply = cancelReply;
+      window.submitNumerology = submitNumerology;
+      window.requestRecentMessages = requestRecentMessages;
     </script>
   </body>
 </html>
-</html>
-</html>
-              username: username,
-              message: message,
-              timestamp: new Date().toISOString(),
               channel: currentChannel,
               type: "text",
             };
