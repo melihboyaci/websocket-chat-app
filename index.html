@@ -1134,13 +1134,7 @@
                 displayMessage(data);
               } catch (error) {
                 console.error("Mesaj parse hatası:", error);
-                displayMessage({
-                  username: "Anonim",
-                  message: line,
-                  timestamp: new Date(),
-                  channel: currentChannel,
-                  type: "text",
-                });
+                // Don't create fallback messages that show as "Anonim"
               }
             }
           };
@@ -1558,10 +1552,10 @@
         messageInput.placeholder = `#${currentChannel} kanalına mesaj gönder`;
       }
 
-      // Update sendMessage function to handle replies
+      // Update sendMessage function to always include username
       function sendMessage() {
         const message = messageInput.value.trim();
-        if (message && ws && ws.readyState === WebSocket.OPEN) {
+        if (message && ws && ws.readyState === WebSocket.OPEN && username) {
           try {
             const messageData = {
               username: username,
@@ -1602,18 +1596,16 @@
               position: "top-end",
             });
           }
-        } else if (!ws || ws.readyState !== WebSocket.OPEN) {
-          console.log("WebSocket bağlantısı yok, yeniden bağlanılıyor...");
+        } else if (!username) {
           Swal.fire({
             icon: "warning",
-            title: "Bağlantı Kesildi",
-            text: "Yeniden bağlanmaya çalışılıyor...",
+            title: "Kullanıcı Adı Gerekli",
+            text: "Mesaj göndermek için önce giriş yapmalısınız.",
             timer: 2000,
             showConfirmButton: false,
             toast: true,
             position: "top-end",
           });
-          connectWebSocket();
         }
       }
 
@@ -2331,6 +2323,14 @@
         });
       });
 
+      // Make functions global for onclick handlers
+      window.startReply = startReply;
+      window.cancelReply = cancelReply;
+      window.submitNumerology = submitNumerology;
+      window.requestRecentMessages = requestRecentMessages;
+    </script>
+  </body>
+</html>
       // Make functions global for onclick handlers
       window.startReply = startReply;
       window.cancelReply = cancelReply;

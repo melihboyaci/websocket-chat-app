@@ -303,43 +303,48 @@ func (c *Client) readPump(hub *Hub) {
 		var msg Message
 		if err := json.Unmarshal(messageBytes, &msg); err != nil {
 			log.Printf("Mesaj parse hatası: %v", err)
-			// Fallback to plain text
-			msg = Message{
-				Username:  c.Username,
-				Message:   string(messageBytes),
-				Timestamp: time.Now(),
-				Channel:   "genel",
-				Type:      "text",
-			}
-		} else {
-			// Update client username and log if first time setting
-			if msg.Username != "" && c.Username == "" {
-				c.Username = msg.Username
-				log.Printf("Kullanıcı adı belirlendi. ID: %s, Kullanıcı: %s", c.ID, c.Username)
-			} else if msg.Username != "" {
-				c.Username = msg.Username
-			}
+			// Skip malformed messages instead of creating fallback
+			continue
+		}
 
-			// Set timestamp and default channel for regular messages
-			if msg.Type != "seen" {
-				// Always set server timestamp for new messages
-				if msg.Message != "__GET_RECENT_MESSAGES__" {
-					msg.Timestamp = time.Now()
-				}
-			}
-			if msg.Channel == "" {
-				msg.Channel = "genel"
-			}
-			if msg.Type == "" {
-				msg.Type = "text"
-			}
+		// Update client username and log if first time setting
+		if msg.Username != "" && c.Username == "" {
+			c.Username = msg.Username
+			log.Printf("Kullanıcı adı belirlendi. ID: %s, Kullanıcı: %s", c.ID, c.Username)
+		} else if msg.Username != "" {
+			c.Username = msg.Username
+		}
 
-			// Handle special request for recent messages
-			if msg.Message == "__GET_RECENT_MESSAGES__" {
-				log.Printf("Geçmiş mesajlar istendi: kanal=%s, kullanıcı=%s", msg.Channel, msg.Username)
-				go hub.sendRecentMessages(c, msg.Channel)
-				continue
+		// Ensure username is set
+		if msg.Username == "" && c.Username != "" {
+			msg.Username = c.Username
+		}
+
+		// Skip messages without username
+		if msg.Username == "" {
+			log.Printf("Mesaj kullanıcı adı olmadan atlandı: %s", msg.Message)
+			continue
+		}
+
+		// Set timestamp and default channel for regular messages
+		if msg.Type != "seen" {
+			// Always set server timestamp for new messages
+			if msg.Message != "__GET_RECENT_MESSAGES__" {
+				msg.Timestamp = time.Now()
 			}
+		}
+		if msg.Channel == "" {
+			msg.Channel = "genel"
+		}
+		if msg.Type == "" {
+			msg.Type = "text"
+		}
+
+		// Handle special request for recent messages
+		if msg.Message == "__GET_RECENT_MESSAGES__" {
+			log.Printf("Geçmiş mesajlar istendi: kanal=%s, kullanıcı=%s", msg.Channel, msg.Username)
+			go hub.sendRecentMessages(c, msg.Channel)
+			continue
 		}
 
 		log.Printf("Gelen mesaj: %s, Tip: %s, Kullanıcı: %s, Kanal: %s", msg.Message, msg.Type, msg.Username, msg.Channel)
