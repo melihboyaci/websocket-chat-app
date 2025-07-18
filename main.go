@@ -1,10 +1,12 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -19,15 +21,25 @@ import (
 
 // Message represents a chat message
 type Message struct {
-	Username  string    `json:"username"`
-	Message   string    `json:"message"`
-	Timestamp time.Time `json:"timestamp"`
-	Channel   string    `json:"channel"`
-	Type      string    `json:"type,omitempty"` // "text", "file", "image", "seen"
-	FileURL   string    `json:"fileUrl,omitempty"`
-	FileName  string    `json:"fileName,omitempty"`
-	FileSize  int64     `json:"fileSize,omitempty"`
-	SeenBy    []string  `json:"seenBy,omitempty"` // Kullanıcı adları
+	Username     string     `json:"username"`
+	Message      string     `json:"message"`
+	Timestamp    time.Time  `json:"timestamp"`
+	Channel      string     `json:"channel"`
+	Type         string     `json:"type,omitempty"` // "text", "file", "image", "seen", "numerology"
+	FileURL      string     `json:"fileUrl,omitempty"`
+	FileName     string     `json:"fileName,omitempty"`
+	FileSize     int64      `json:"fileSize,omitempty"`
+	SeenBy       []string   `json:"seenBy,omitempty"` // Kullanıcı adları
+	ReplyTo      *ReplyInfo `json:"replyTo,omitempty"` // Yanıtlanan mesaj bilgisi
+	NumerologyData interface{} `json:"numerologyData,omitempty"` // Numeroloji API sonucu
+}
+
+// ReplyInfo contains information about the message being replied to
+type ReplyInfo struct {
+	MessageID string `json:"messageId"`
+	Username  string `json:"username"`
+	Message   string `json:"message"`
+	Type      string `json:"type,omitempty"`
 }
 
 // Client represents a connected WebSocket client
@@ -543,12 +555,78 @@ func main() {
 		w.WriteHeader(http.StatusOK)
 	})
 
+	// Numerology API proxy endpoint
+	http.HandleFunc("/api/numerology", func(w http.ResponseWriter, r *http.Request) {
+		handleNumerologyProxy(w, r)
+	})
+
 	// Container içinde HTTP modunda çalış (Nginx SSL termination yapar)
 	log.Printf("HTTP sohbet sunucusu :80 portunda başlatıldı...")
 	err := http.ListenAndServe(":80", nil)
 	if err != nil {
 		log.Fatal("HTTP ListenAndServe hatası: ", err)
 	}
+}
+
+// handleNumerologyProxy proxies requests to the numerology API
+func handleNumerologyProxy(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// CORS headers
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "POST")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+
+	// Read request body
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		log.Printf("Numerology API request body read error: %v", err)
+		http.Error(w, "Error reading request", http.StatusBadRequest)
+		return
+	}
+
+	// Create request to numerology API
+	numerologyURL := "http://numerology-api:8000/numerology"
+	req, err := http.NewRequest("POST", numerologyURL, bytes.NewBuffer(body))
+	if err != nil {
+		log.Printf("Numerology API request creation error: %v", err)
+		http.Error(w, "Error creating request", http.StatusInternalServerError)
+		return
+	}
+
+	// Set headers
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("X-API-KEY", "websocket-chat-app-key-2024") // Use a valid API key
+
+	// Make request
+	client := &http.Client{Timeout: 30 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Printf("Numerology API request error: %v", err)
+		http.Error(w, "Error calling numerology API", http.StatusServiceUnavailable)
+		return
+	}
+	defer resp.Body.Close()
+
+	// Read response
+	respBody, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Printf("Numerology API response read error: %v", err)
+		http.Error(w, "Error reading API response", http.StatusInternalServerError)
+		return
+	}
+
+	// Set response headers
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(resp.StatusCode)
+
+	// Write response
+	w.Write(respBody)
+
+	log.Printf("Numerology API request completed with status: %d", resp.StatusCode)
 }
 
 func handleFileUpload(hub *Hub, w http.ResponseWriter, r *http.Request) {
