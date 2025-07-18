@@ -2127,6 +2127,119 @@
         xhr.send(formData);
       }
 
+      // Update seen info in UI with blue checkmarks
+      function updateSeenInfo(msgKey) {
+        const seenBy = seenByMap[msgKey] || [];
+        const seenDivs = document.querySelectorAll(`.seen-info[data-msgkey="${msgKey}"]`);
+        seenDivs.forEach((div) => {
+          if (seenBy.length === 0) {
+            div.innerHTML = "";
+          } else {
+            const seenUsers = seenBy.filter(user => user !== username);
+            if (seenUsers.length > 0) {
+              div.innerHTML = `<span class="seen-checkmark" style="color: #007bff;">✓✓</span><span class="seen-users">${seenUsers.join(", ")}</span>`;
+            } else {
+              div.innerHTML = "";
+            }
+          }
+        });
+      }
+
+      // Handle seen update from server
+      function updateSeenStatus(data) {
+        if (!data.channel || !data.timestamp || !data.username) return;
+        const ts = new Date(data.timestamp).getTime();
+        const msgKey = `${data.channel}_${ts}`;
+        if (!seenByMap[msgKey]) seenByMap[msgKey] = [];
+        if (!seenByMap[msgKey].includes(data.username)) {
+          seenByMap[msgKey].push(data.username);
+          updateSeenInfo(msgKey);
+        }
+      }
+
+      // Clear history button functionality
+      clearHistoryBtn.addEventListener("click", () => {
+        Swal.fire({
+          title: "Geçmişi Temizle",
+          text: `#${currentChannel} kanalının geçmişini temizlemek istediğinize emin misiniz?`,
+          icon: "warning",
+          showCancelButton: true,
+          confirmButtonText: "Evet, Temizle",
+          cancelButtonText: "İptal",
+          confirmButtonColor: "#dc3545",
+        }).then((result) => {
+          if (result.isConfirmed) {
+            fetch("/clear-history", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ channel: currentChannel }),
+            })
+              .then((res) => {
+                if (res.ok) {
+                  messages.innerHTML = "";
+                  Swal.fire({
+                    icon: "success",
+                    title: "Başarılı!",
+                    text: "Geçmiş mesajlar temizlendi.",
+                    timer: 2000,
+                    showConfirmButton: false,
+                    toast: true,
+                    position: "top-end",
+                  });
+                } else {
+                  Swal.fire({
+                    icon: "error",
+                    title: "Hata!",
+                    text: "Geçmiş temizlenemedi.",
+                    timer: 2000,
+                    showConfirmButton: false,
+                    toast: true,
+                    position: "top-end",
+                  });
+                }
+              })
+              .catch(() => {
+                Swal.fire({
+                  icon: "error",
+                  title: "Hata!",
+                  text: "Sunucu hatası.",
+                  timer: 2000,
+                  showConfirmButton: false,
+                  toast: true,
+                  position: "top-end",
+                });
+              });
+          }
+        });
+      });
+
+      // Add missing event listeners for send button and enter key
+      sendButton.addEventListener("click", sendMessage);
+      messageInput.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") {
+          sendMessage();
+        }
+      });
+
+      // Focus username input initially
+      usernameInput.focus();
+
+      function updateActiveUserCount(count) {
+        activeUsersCount.textContent = count;
+
+        // Update text based on count
+        const activeUsersElement = document.querySelector(
+          ".active-users span:last-child"
+        );
+        if (count === 1) {
+          activeUsersElement.textContent = "aktif kullanıcı";
+        } else {
+          activeUsersElement.textContent = "aktif kullanıcı";
+        }
+      }
+
       // Add missing functions for proper message display
       function addSystemMessage(message) {
         const messageElement = document.createElement("div");
@@ -2204,8 +2317,7 @@
             }
             // Clear saved username
             localStorage.removeItem("chatliyo_username");
-            // Reset variables
-            username = "";
+            // Reset variables            username = "";
             // Show login modal and hide app
             loginModal.style.display = "flex";
             app.style.display = "none";
@@ -2236,118 +2348,6 @@
     </script>
   </body>
 </html>
-                    <div class="message-header">
-                        <span class="message-author">Sistem</span>
-                        <span class="message-timestamp">${timeString}</span>
-                    </div>
-                    <div class="message-text">${escapeHtml(message)}</div>
-                </div>
-            `;
-
-        messages.appendChild(messageElement);
-        messages.scrollTop = messages.scrollHeight;
-      }
-
-      function escapeHtml(text) {
-        const div = document.createElement("div");
-        div.textContent = text;
-        return div.innerHTML;
-      }
-
-      function addNotification(channelName) {
-        if (!unreadCounts[channelName]) {
-          unreadCounts[channelName] = 0;
-        }
-        unreadCounts[channelName]++;
-
-        const badge = document.querySelector(
-          `.notification-badge[data-channel="${channelName}"]`
-        );
-        if (badge) {
-          badge.textContent = unreadCounts[channelName];
-          badge.classList.add("show");
-        }
-      }
-
-      function clearNotifications(channelName) {
-        unreadCounts[channelName] = 0;
-        const badge = document.querySelector(
-          `.notification-badge[data-channel="${channelName}"]`
-        );
-        if (badge) {
-          badge.classList.remove("show");
-          badge.textContent = "0";
-        }
-      }
-
-      // Çıkış yap butonu işlevi
-      const logoutBtn = document.getElementById("logoutBtn");
-      logoutBtn.addEventListener("click", () => {
-        Swal.fire({
-          title: "Çıkış Yap",
-          text: "Çıkış yapmak istediğinize emin misiniz?",
-          icon: "warning",
-          showCancelButton: true,
-          confirmButtonText: "Evet, çıkış yap",
-          cancelButtonText: "İptal",
-          confirmButtonColor: "#dc3545",
-        }).then((result) => {
-          if (result.isConfirmed) {
-            // Close WebSocket connection
-            if (ws) {
-              ws.close();
-            }
-            // Clear saved username
-            localStorage.removeItem("chatliyo_username");
-            // Reset variables
-            username = "";
-            // Show login modal and hide app
-            loginModal.style.display = "flex";
-            app.style.display = "none";
-            // Clear messages
-            messages.innerHTML = "";
-            // Focus username input
-            usernameInput.value = "";
-            usernameInput.focus();
-            // Show logout confirmation
-            Swal.fire({
-              icon: "success",
-              title: "Çıkış Yapıldı",
-              text: "Başarıyla çıkış yaptınız",
-              timer: 1500,
-              showConfirmButton: false,
-              toast: true,
-              position: "top-end",
-            });
-          }
-        });
-      });
-
-      // Make functions global for onclick handlers
-      window.startReply = startReply;
-      window.cancelReply = cancelReply;
-      window.submitNumerology = submitNumerology;
-      window.requestRecentMessages = requestRecentMessages;
-    </script>
-  </body>
-</html>
-      // Make functions global for onclick handlers
-      window.startReply = startReply;
-      window.cancelReply = cancelReply;
-      window.submitNumerology = submitNumerology;
-      window.requestRecentMessages = requestRecentMessages;
-    </script>
-  </body>
-</html>
-              channel: currentChannel,
-              type: "text",
-            };
-            
-            // Add reply information if replying
-            if (replyingTo) {
-              messageData.replyTo = {
-                messageId: replyingTo.messageId,
-                username: replyingTo.username,
                 message: replyingTo.message,
                 type: replyingTo.type
               };
