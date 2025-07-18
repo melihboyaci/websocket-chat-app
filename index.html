@@ -1039,6 +1039,7 @@
       const currentChannelName = document.getElementById("currentChannelName");
       const channels = document.querySelectorAll(".channel");
       const clearHistoryBtn = document.getElementById("clearHistoryBtn");
+      const numerologyForm = document.getElementById("numerologyForm");
 
       // Login functionality
       loginForm.addEventListener("submit", (e) => {
@@ -1078,6 +1079,10 @@
           loginModal.style.display = "none";
           app.style.display = "flex";
           initializeAudio();
+          // Initialize numerology form visibility
+          setTimeout(() => {
+            toggleNumerologyForm();
+          }, 100);
           connectWebSocket();
           // usernameInput'a focus verme!
         } else {
@@ -1191,6 +1196,17 @@
         }
       }
 
+      // Show/hide numerology form based on channel
+      function toggleNumerologyForm() {
+        if (currentChannel === 'numeroloji') {
+          numerologyForm.classList.add('show');
+          messageInput.placeholder = '#numeroloji kanalına mesaj gönder veya yukarıdan analiz yapın';
+        } else {
+          numerologyForm.classList.remove('show');
+          messageInput.placeholder = `#${currentChannel} kanalına mesaj gönder`;
+        }
+      }
+
       // Channel switching
       channels.forEach((channel) => {
         channel.addEventListener("click", () => {
@@ -1201,8 +1217,7 @@
 
           currentChannel = channel.dataset.channel;
           currentChannelName.textContent = currentChannel;
-          messageInput.placeholder = `#${currentChannel} kanalına mesaj gönder`;
-
+          
           // Update form visibility
           toggleNumerologyForm();
 
@@ -2123,219 +2138,204 @@
         });
       }
 
-      // Enhanced displayMessage function to handle file messages and seen
-      function displayMessage(data) {
-        console.log("displayMessage çağrıldı:", data);
-
-        if (data.message === "__GET_RECENT_MESSAGES__") {
-          console.log("Geçmiş mesajlar isteği, atlanıyor");
-          return;
-        }
-
-        // Only display messages for current channel or system messages
-        if (!data.channel || data.channel === currentChannel) {
-          console.log(
-            "Mesaj mevcut kanalda görüntüleniyor:",
-            data.channel,
-            currentChannel
-          );
-
-          const messageElement = document.createElement("div");
-          messageElement.className = "message";
-
-          const timestamp = new Date(data.timestamp);
-          const timeString = timestamp.toLocaleTimeString("tr-TR", {
-            hour: "2-digit",
-            minute: "2-digit",
-          });
-
-          // Track last message timestamp for seen
-          lastMessageTimestamps[currentChannel] = timestamp;
-
-          // Store seenBy info
-          const msgKey = `${currentChannel}_${timestamp.getTime()}`;
-          seenByMap[msgKey] = data.seenBy || [];
-
-          let messageContent = "";
-
-          // Handle numerology messages
-          if (data.type === "numerology" && data.numerologyData) {
-            const numerologyContent = `
-              <div class="api-response">
-                <h4>📊 Numeroloji Analizi Sonucu</h4>
-                <div class="result-item">
-                  <div class="result-number">Yaşam Yolu Sayısı: ${data.numerologyData.numerology_report.life_path_number.number}</div>
-                  <div class="result-text">${escapeHtml(data.numerologyData.numerology_report.life_path_number.interpretation)}</div>
-                </div>
-                <div class="result-item">
-                  <div class="result-number">İsim Sayısı: ${data.numerologyData.numerology_report.name_number.number}</div>
-                  <div class="result-text">${escapeHtml(data.numerologyData.numerology_report.name_number.interpretation)}</div>
-                </div>
-              </div>
-            `;
-
-            messageContent = `
-              <div class="message-avatar">🔮</div>
-              <div class="message-content">
-                <div class="message-header">
-                  <span class="message-author">${escapeHtml(data.username)}</span>
-                  <span class="message-timestamp">${timeString}</span>
-                </div>
-                ${numerologyContent}
-                <div class="seen-info" data-msgkey="${msgKey}"></div>
-              </div>
-            `;
-          }
-          else if (data.type === "file" || data.type === "image") {
-            let fileContent = "";
-
-            if (data.type === "image") {
-              fileContent = `
-                            <div class="file-message">
-                                <img src="${data.fileUrl}" alt="${
-                data.fileName
-              }" class="file-preview" onclick="window.open('${
-                data.fileUrl
-              }', '_blank')">
-                                <div class="file-info">
-                                    <span class="file-icon">🖼️</span>
-                                    <a href="${
-                                      data.fileUrl
-                                    }" target="_blank" class="file-download">${
-                data.fileName
-              }</a>
-                                    <span>(${formatFileSize(
-                                      data.fileSize
-                                    )})</span>
-                                </div>
-                            </div>
-                        `;
-            } else {
-              const fileIcon = getFileIcon(data.fileName);
-              fileContent = `
-                            <div class="file-message">
-                                <div class="file-info">
-                                    <span class="file-icon">${fileIcon}</span>
-                                    <a href="${
-                                      data.fileUrl
-                                    }" target="_blank" class="file-download">${
-                data.fileName
-              }</a>
-                                    <span>(${formatFileSize(
-                                      data.fileSize
-                                    )})</span>
-                                </div>
-                            </div>
-                        `;
-            }
-
-            messageContent = `
-                        <div class="message-avatar">${data.username
-                          .charAt(0)
-                          .toUpperCase()}</div>
-                        <div class="message-content">
-                            <div class="message-header">
-                                <span class="message-author">${
-                                  data.username
-                                }</span>
-                                <span class="message-timestamp">${timeString}</span>
-                            </div>
-                            <div class="message-text">${escapeHtml(
-                              data.message
-                            )}</div>
-                            ${fileContent}
-                            <div class="seen-info" data-msgkey="${msgKey}"></div>
-                          </div>
-                    `;
-          } else {
-            messageContent = `
-                        <div class="message-avatar">${data.username
-                          .charAt(0)
-                          .toUpperCase()}</div>
-                        <div class="message-content">
-                            <div class="message-header">
-                                <span class="message-author">${escapeHtml(
-                                  data.username
-                                )}</span>
-                                <span class="message-timestamp">${timeString}</span>
-                            </div>
-                            <div class="message-text">${escapeHtml(
-                              data.message
-                            )}</div>
-                            <div class="seen-info" data-msgkey="${msgKey}"></div>
-                        </div>
-                    `;
-          }
-
-          messageElement.innerHTML = messageContent;
-          messages.appendChild(messageElement);
-          messages.scrollTop = messages.scrollHeight;
-
-          // Show seen info
+      // Handle seen update from server
+      function updateSeenStatus(data) {
+        if (!data.channel || !data.timestamp || !data.username) return;
+        const ts = new Date(data.timestamp).getTime();
+        const msgKey = `${data.channel}_${ts}`;
+        if (!seenByMap[msgKey]) seenByMap[msgKey] = [];
+        if (!seenByMap[msgKey].includes(data.username)) {
+          seenByMap[msgKey].push(data.username);
           updateSeenInfo(msgKey);
-
-          // Play notification sound for messages from other users in current channel
-          if (data.username !== username && data.username !== "Sistem") {
-            playNotificationSound();
-          }
-
-          // --- GÖRÜLDÜ: Otomatik değil, sadece kullanıcı aktifken ve scroll en alttayken gönder ---
-          maybeSendSeenForLatestMessage();
-        } else if (data.channel && data.channel !== currentChannel) {
-          // Add notification for messages in other channels
-          if (data.username !== username) {
-            addNotification(data.channel);
-            // Play notification sound for messages from other users in other channels
-            playNotificationSound();
-          }
         }
       }
 
-      // Reply functions
-      function startReply(messageId, author, message, type) {
-        replyingTo = {
-          messageId: messageId,
-          username: author,
-          message: message,
-          type: type
-        };
-        
-        showReplyPreview();
-        messageInput.focus();
+      clearHistoryBtn.addEventListener("click", () => {
+        Swal.fire({
+          title: "Geçmişi Temizle",
+          text: `#${currentChannel} kanalının geçmişini temizlemek istediğinize emin misiniz?`,
+          icon: "warning",
+          showCancelButton: true,
+          confirmButtonText: "Evet, Temizle",
+          cancelButtonText: "İptal",
+          confirmButtonColor: "#dc3545",
+        }).then((result) => {
+          if (result.isConfirmed) {
+            fetch("/clear-history", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ channel: currentChannel }),
+            })
+              .then((res) => {
+                if (res.ok) {
+                  messages.innerHTML = "";
+
+                  Swal.fire({
+                    icon: "success",
+                    title: "Başarılı!",
+                    text: "Geçmiş mesajlar temizlendi.",
+                    timer: 2000,
+                    showConfirmButton: false,
+                    toast: true,
+                    position: "top-end",
+                  });
+                } else {
+                  Swal.fire({
+                    icon: "error",
+                    title: "Hata!",
+                    text: "Geçmiş temizlenemedi.",
+                    timer: 2000,
+                    showConfirmButton: false,
+                    toast: true,
+                    position: "top-end",
+                  });
+                }
+              })
+              .catch(() => {
+                Swal.fire({
+                  icon: "error",
+                  title: "Hata!",
+                  text: "Sunucu hatası.",
+                  timer: 2000,
+                  showConfirmButton: false,
+                  toast: true,
+                  position: "top-end",
+                });
+              });
+          }
+        });
+      });
+
+      sendButton.addEventListener("click", sendMessage);
+      messageInput.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") {
+          sendMessage();
+        }
+      });
+
+      usernameInput.focus();
+
+      function updateActiveUserCount(count) {
+        activeUsersCount.textContent = count;
+
+        // Update text based on count
+        const activeUsersElement = document.querySelector(
+          ".active-users span:last-child"
+        );
+        if (count === 1) {
+          activeUsersElement.textContent = "aktif kullanıcı";
+        } else {
+          activeUsersElement.textContent = "aktif kullanıcı";
+        }
       }
 
-      function showReplyPreview() {
-        if (!replyingTo) return;
-        
-        const displayMessage = replyingTo.type === 'file' || replyingTo.type === 'image' 
-          ? (replyingTo.type === 'image' ? '📷 Resim' : '📎 Dosya')
-          : replyingTo.type === 'numerology' ? '🔮 Numeroloji analizi' : replyingTo.message;
-          
-        replyInputContainer.innerHTML = `
-          <div class="reply-preview">
-            <div class="reply-author">${escapeHtml(replyingTo.username)}</div>
-            <div class="reply-text">${escapeHtml(displayMessage)}</div>
-            <button class="reply-cancel" onclick="cancelReply()">&times;</button>
-          </div>
-        `;
-        
-        replyInputContainer.classList.add('show');
-        messageInput.placeholder = `${replyingTo.username} kullanıcısına yanıt veriyorsunuz...`;
+      // Add missing functions for proper message display
+      function addSystemMessage(message) {
+        const messageElement = document.createElement("div");
+        messageElement.className = "message system-message";
+
+        const timestamp = new Date();
+        const timeString = timestamp.toLocaleTimeString("tr-TR", {
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+
+        messageElement.innerHTML = `
+                <div class="message-avatar">S</div>
+                <div class="message-content">
+                    <div class="message-header">
+                        <span class="message-author">Sistem</span>
+                        <span class="message-timestamp">${timeString}</span>
+                    </div>
+                    <div class="message-text">${escapeHtml(message)}</div>
+                </div>
+            `;
+
+        messages.appendChild(messageElement);
+        messages.scrollTop = messages.scrollHeight;
       }
 
-      function cancelReply() {
-        replyingTo = null;
-        replyInputContainer.classList.remove('show');
-        replyInputContainer.innerHTML = '';
-        messageInput.placeholder = `#${currentChannel} kanalına mesaj gönder`;
+      function escapeHtml(text) {
+        const div = document.createElement("div");
+        div.textContent = text;
+        return div.innerHTML;
       }
 
-      // Update sendMessage function to handle replies
-      function sendMessage() {
-        const message = messageInput.value.trim();
-        if (message && ws && ws.readyState === WebSocket.OPEN) {
-          try {
-            const messageData = {
+      function addNotification(channelName) {
+        if (!unreadCounts[channelName]) {
+          unreadCounts[channelName] = 0;
+        }
+        unreadCounts[channelName]++;
+
+        const badge = document.querySelector(
+          `.notification-badge[data-channel="${channelName}"]`
+        );
+        if (badge) {
+          badge.textContent = unreadCounts[channelName];
+          badge.classList.add("show");
+        }
+      }
+
+      function clearNotifications(channelName) {
+        unreadCounts[channelName] = 0;
+        const badge = document.querySelector(
+          `.notification-badge[data-channel="${channelName}"]`
+        );
+        if (badge) {
+          badge.classList.remove("show");
+          badge.textContent = "0";
+        }
+      }
+
+      // Çıkış yap butonu işlevi
+      const logoutBtn = document.getElementById("logoutBtn");
+      logoutBtn.addEventListener("click", () => {
+        Swal.fire({
+          title: "Çıkış Yap",
+          text: "Çıkış yapmak istediğinize emin misiniz?",
+          icon: "warning",
+          showCancelButton: true,
+          confirmButtonText: "Evet, çıkış yap",
+          cancelButtonText: "İptal",
+          confirmButtonColor: "#dc3545",
+        }).then((result) => {
+          if (result.isConfirmed) {
+            // Close WebSocket connection
+            if (ws) {
+              ws.close();
+            }
+            // Clear saved username
+            localStorage.removeItem("chatliyo_username");
+            // Reset variables
+            username = "";
+            // Show login modal and hide app
+            loginModal.style.display = "flex";
+            app.style.display = "none";
+            // Clear messages
+            messages.innerHTML = "";
+            // Focus username input
+            usernameInput.value = "";
+            usernameInput.focus();
+            // Show logout confirmation
+            Swal.fire({
+              icon: "success",
+              title: "Çıkış Yapıldı",
+              text: "Başarıyla çıkış yaptınız",
+              timer: 1500,
+              showConfirmButton: false,
+              toast: true,
+              position: "top-end",
+            });
+          }
+        });
+      });
+    </script>
+  </body>
+</html>
+</html>
+</html>
               username: username,
               message: message,
               timestamp: new Date().toISOString(),
