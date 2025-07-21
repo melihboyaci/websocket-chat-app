@@ -15,7 +15,7 @@ A real-time chat application built with Go backend and vanilla JavaScript fronte
 - 👁️ Message seen indicators
 - 🔊 Customizable notification sounds
 - 💬 Reply to messages functionality
-- 🔮 Numerology analysis integration
+- 🔮 Numerology analysis integration with color visualization
 - 📊 Redis message persistence
 
 ## Technology Stack
@@ -111,7 +111,8 @@ websocket-chat-app/
    - Switch to #numeroloji channel
    - Fill in the form with name and birth date
    - Click "Analiz Et" to get numerology reading
-   - Results are shared in the channel
+   - Results are shared in the channel with color-coded aura display
+   - Aura colors are visually represented with actual color styling
 
 5. **User Interface**
 

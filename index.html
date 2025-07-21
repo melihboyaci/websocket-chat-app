@@ -715,6 +715,28 @@
         margin-top: 4px;
       }
 
+      /* Color styling for numerology colors */
+      .aura-color-text {
+        font-weight: bold;
+        padding: 2px 6px;
+        border-radius: 4px;
+        display: inline-block;
+        margin: 2px 0;
+      }
+
+      .color-red { color: #dc3545; background-color: rgba(220, 53, 69, 0.1); }
+      .color-orange { color: #fd7e14; background-color: rgba(253, 126, 20, 0.1); }
+      .color-yellow { color: #ffc107; background-color: rgba(255, 193, 7, 0.1); }
+      .color-green { color: #28a745; background-color: rgba(40, 167, 69, 0.1); }
+      .color-blue { color: #007bff; background-color: rgba(0, 123, 255, 0.1); }
+      .color-indigo { color: #6610f2; background-color: rgba(102, 16, 242, 0.1); }
+      .color-purple { color: #6f42c1; background-color: rgba(111, 66, 193, 0.1); }
+      .color-pink { color: #e83e8c; background-color: rgba(232, 62, 140, 0.1); }
+      .color-bronze { color: #cd7f32; background-color: rgba(205, 127, 50, 0.1); }
+      .color-silver { color: #c0c0c0; background-color: rgba(192, 192, 192, 0.1); }
+      .color-gold { color: #ffd700; background-color: rgba(255, 215, 0, 0.1); }
+      .color-crystal { color: #f8f9fa; background-color: rgba(248, 249, 250, 0.2); border: 1px solid #dee2e6; }
+
       /* Reply styles */
       .reply-preview {
         background: #f8f9fa;
@@ -1456,6 +1478,10 @@
               const report = data.numerologyData.numerology_report;
               const aiText = data.numerologyData.ai_interpretation || 'AI yorumu mevcut değil.';
               
+              // Get color class for aura color
+              const auraColorClass = getColorClass(report.aura_color.number);
+              const auraColorText = report.aura_color.interpretation;
+              
               numerologyContent = `
                 <div class="api-response">
                   <h4>🔮 ${data.numerologyData.request_data.full_name} için Numeroloji Analizi</h4>
@@ -1466,6 +1492,12 @@
                   <div class="result-item">
                     <div class="result-number">İsim Sayısı: ${report.name_number.number}</div>
                     <div class="result-text">${escapeHtml(report.name_number.interpretation)}</div>
+                  </div>
+                  <div class="result-item">
+                    <div class="result-number">Aura Rengi: ${report.aura_color.number}</div>
+                    <div class="result-text">
+                      <span class="aura-color-text ${auraColorClass}">${escapeHtml(auraColorText)}</span>
+                    </div>
                   </div>
                   <div class="result-item">
                     <div class="result-number">🤖 AI Yorumu:</div>
@@ -2374,25 +2406,18 @@
             if (ws) {
               ws.close();
             }
-            // Clear saved username and user ID
+            // Clear saved username
             localStorage.removeItem("chatliyo_username");
-            localStorage.removeItem("chatliyo_user_id");
-            console.log("Kullanıcı adı ve ID localStorage'dan silindi");
-            
             // Reset variables
             username = "";
-            userId = "";
             // Show login modal and hide app
             loginModal.style.display = "flex";
             app.style.display = "none";
             // Clear messages
             messages.innerHTML = "";
-            // Focus username input and clear it
+            // Focus username input
             usernameInput.value = "";
-            setTimeout(() => {
-              usernameInput.focus();
-            }, 100);
-            
+            usernameInput.focus();
             // Show logout confirmation
             Swal.fire({
               icon: "success",
@@ -2412,60 +2437,35 @@
       window.cancelReply = cancelReply;
       window.submitNumerology = submitNumerology;
       window.requestRecentMessages = requestRecentMessages;
+
+      // Helper function to get color class based on number
+      function getColorClass(number) {
+        const colorMap = {
+          1: 'color-red',
+          2: 'color-orange', 
+          3: 'color-yellow',
+          4: 'color-green',
+          5: 'color-blue',
+          6: 'color-indigo',
+          7: 'color-purple',
+          8: 'color-pink',
+          9: 'color-bronze',
+          11: 'color-silver',
+          22: 'color-gold',
+          33: 'color-crystal'
+        };
+        return colorMap[number] || 'color-crystal';
+      }
     </script>
   </body>
 </html>
-          // Load saved sound enabled state
-          const savedSoundEnabled = localStorage.getItem("soundEnabled");
-          if (savedSoundEnabled !== null) {
-            isSoundEnabled = savedSoundEnabled === "true";
-            updateSoundToggleUI();
-          }
-        } catch (error) {
-          console.log("Audio context not supported:", error);
-        }
+          33: 'color-crystal'
+        };
+        return colorMap[number] || 'color-crystal';
       }
-
-      // Create different sound types using Web Audio API
-      function createBeepSound() {
-        if (!audioContext) return;
-
-        const oscillator = audioContext.createOscillator();
-        const gainNode = audioContext.createGain();
-
-        oscillator.connect(gainNode);
-        gainNode.connect(audioContext.destination);
-
-        oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
-        oscillator.frequency.setValueAtTime(
-          600,
-          audioContext.currentTime + 0.1
-        );
-
-        gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-        gainNode.gain.linearRampToValueAtTime(
-          0.3,
-          audioContext.currentTime + 0.01
-        );
-        gainNode.gain.exponentialRampToValueAtTime(
-          0.01,
-          audioContext.currentTime + 0.3
-        );
-
-        oscillator.start(audioContext.currentTime);
-        oscillator.stop(audioContext.currentTime + 0.3);
-      }
-
-      function createDingSound() {
-        if (!audioContext) return;
-
-        const oscillator = audioContext.createOscillator();
-        const gainNode = audioContext.createGain();
-
-        oscillator.connect(gainNode);
-        gainNode.connect(audioContext.destination);
-
-        oscillator.frequency.setValueAtTime(1000, audioContext.currentTime);
+    </script>
+  </body>
+</html>
         oscillator.frequency.exponentialRampToValueAtTime(
           800,
           audioContext.currentTime + 0.5
