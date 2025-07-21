@@ -90,8 +90,9 @@ websocket-chat-app/
 
    - Enter your desired username in the login modal
    - Click "Sohbete Katıl" to join
-   - Your username will be saved and remembered across browser sessions
-   - Server logs will show connection with your username
+   - Your username and unique user ID will be automatically saved and remembered across browser sessions
+   - When you return to the site, you'll be automatically logged in with your saved credentials
+   - Server logs will show connection with your username and persistent user ID
 
 2. **Switch Channels**
 
@@ -120,8 +121,10 @@ websocket-chat-app/
    - User panel at the bottom of sidebar with logout option
 
 6. **Logout**
-   - Click "Çıkış Yap" button to logout and clear saved username
-   - You'll be prompted to enter username again on next visit
+   - Click "Çıkış Yap" button to logout and clear saved username and user ID
+   - This will remove your credentials from browser storage
+   - You'll need to enter your username again on next visit
+   - A new user ID will be assigned on next login
 
 ## API Endpoints
 

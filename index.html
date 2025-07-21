@@ -1009,6 +1009,7 @@
     <script>
       let ws;
       let username = "";
+      let userId = ""; // Add user ID tracking
       let currentChannel = "genel";
       let reconnectAttempts = 0;
       const maxReconnectAttempts = 5;
@@ -1044,15 +1045,22 @@
       // Login functionality
       loginForm.addEventListener("submit", (e) => {
         e.preventDefault();
-        username = usernameInput.value.trim();
-        if (username) {
+        const inputUsername = usernameInput.value.trim();
+        if (inputUsername && inputUsername.length > 0) {
+          username = inputUsername;
+          userId = ""; // Reset user ID for new login
+          
           // Kullanıcı adını localStorage'a kaydet
           localStorage.setItem("chatliyo_username", username);
+          localStorage.removeItem("chatliyo_user_id"); // Clear old ID
+          console.log("Kullanıcı adı kaydedildi:", username);
+          
           displayUsername.textContent = username;
           userAvatar.textContent = username.charAt(0).toUpperCase();
           loginModal.style.display = "none";
           app.style.display = "flex";
           initializeAudio();
+          
           Swal.fire({
             icon: "success",
             title: "Hoş geldin!",
@@ -1066,14 +1074,16 @@
         }
       });
 
-      // Sayfa yüklendiğinde localStorage'dan kullanıcı adı kontrolü
+      // Sayfa yüklendiğinde localStorage'dan kullanıcı adı ve ID kontrolü
       window.addEventListener("DOMContentLoaded", () => {
-        // DEBUG: localStorage içeriğini logla
-        console.log("localStorage chatliyo_username:", localStorage.getItem("chatliyo_username"));
-        let savedUsername = localStorage.getItem("chatliyo_username");
-        // Sadece ilk yüklemede bir kez çalışsın
+        const savedUsername = localStorage.getItem("chatliyo_username");
+        const savedUserId = localStorage.getItem("chatliyo_user_id");
+        console.log("Kaydedilmiş kullanıcı adı:", savedUsername);
+        console.log("Kaydedilmiş kullanıcı ID:", savedUserId);
+        
         if (savedUsername && savedUsername.trim().length > 0) {
-          username = savedUsername;
+          username = savedUsername.trim();
+          userId = savedUserId || ""; // Restore user ID if available
           displayUsername.textContent = username;
           userAvatar.textContent = username.charAt(0).toUpperCase();
           loginModal.style.display = "none";
@@ -1084,14 +1094,14 @@
             toggleNumerologyForm();
           }, 100);
           connectWebSocket();
-          // usernameInput'a focus verme!
+          console.log("Otomatik giriş yapıldı:", username, "ID:", userId);
         } else {
           loginModal.style.display = "flex";
           app.style.display = "none";
-          usernameInput.value = "";
           setTimeout(() => {
             usernameInput.focus();
           }, 100);
+          console.log("Kullanıcı adı bulunamadı, giriş ekranı gösteriliyor");
         }
       });
 
@@ -1107,12 +1117,23 @@
           ws.onopen = () => {
             console.log("WebSocket bağlantısı kuruldu");
             reconnectAttempts = 0;
-            addSystemMessage(`${username} sohbete katıldı!`);
+            
+            // Send user connection message with persistent ID request
+            if (username) {
+              const connectMessage = {
+                username: username,
+                message: "__USER_CONNECT__",
+                timestamp: new Date().toISOString(),
+                userId: userId // Send existing user ID if available
+              };
+              console.log("Kullanıcı bağlantı mesajı gönderiliyor:", connectMessage);
+              ws.send(JSON.stringify(connectMessage));
+            }
 
             // Load message history for current channel after connection
             setTimeout(() => {
               requestRecentMessages(currentChannel);
-            }, 500);
+            }, 1000);
           };
 
           ws.onmessage = (event) => {
@@ -1121,6 +1142,29 @@
               if (!line.trim()) continue;
               try {
                 const data = JSON.parse(line);
+
+                // Handle user connection confirmation
+                if (data.type === "user_connected" && data.username === username) {
+                  userId = data.userId;
+                  localStorage.setItem("chatliyo_user_id", userId);
+                  console.log("Kullanıcı ID atandı:", userId);
+                  
+                  // Show system message for own connection
+                  addSystemMessage(`${username} sohbete katıldı! (ID: ${userId.slice(-8)})`);
+                  continue;
+                }
+
+                // Handle other user connections
+                if (data.type === "user_connected" && data.username !== username) {
+                  addSystemMessage(`${data.username} sohbete katıldı!`);
+                  continue;
+                }
+
+                // Handle user disconnections
+                if (data.type === "user_disconnected") {
+                  addSystemMessage(`${data.username} sohbetten ayrıldı.`);
+                  continue;
+                }
 
                 // Handle user count updates
                 if (data.type === "user_count") {
@@ -1131,10 +1175,15 @@
                   updateSeenStatus(data);
                   continue;
                 }
+                
+                // Skip displaying __USER_CONNECT__ messages
+                if (data.message === "__USER_CONNECT__") {
+                  continue;
+                }
+                
                 displayMessage(data);
               } catch (error) {
                 console.error("Mesaj parse hatası:", error);
-                // Don't create fallback messages that show as "Anonim"
               }
             }
           };
@@ -1354,9 +1403,10 @@
         });
       }
 
-      // Enhanced displayMessage function to handle numerology messages properly
+      // Enhanced displayMessage function to filter out system messages
       function displayMessage(data) {
-        if (data.message === "__GET_RECENT_MESSAGES__") {
+        // Skip system connection messages
+        if (data.message === "__GET_RECENT_MESSAGES__" || data.message === "__USER_CONNECT__") {
           return;
         }
 
@@ -2168,7 +2218,6 @@
         }
       }
 
-      // Clear history button functionality
       clearHistoryBtn.addEventListener("click", () => {
         Swal.fire({
           title: "Geçmişi Temizle",
@@ -2227,7 +2276,6 @@
         });
       });
 
-      // Add missing event listeners for send button and enter key
       sendButton.addEventListener("click", sendMessage);
       messageInput.addEventListener("keypress", (e) => {
         if (e.key === "Enter") {
@@ -2235,7 +2283,6 @@
         }
       });
 
-      // Focus username input initially
       usernameInput.focus();
 
       function updateActiveUserCount(count) {
@@ -2327,18 +2374,25 @@
             if (ws) {
               ws.close();
             }
-            // Clear saved username
+            // Clear saved username and user ID
             localStorage.removeItem("chatliyo_username");
+            localStorage.removeItem("chatliyo_user_id");
+            console.log("Kullanıcı adı ve ID localStorage'dan silindi");
+            
             // Reset variables
             username = "";
+            userId = "";
             // Show login modal and hide app
             loginModal.style.display = "flex";
             app.style.display = "none";
             // Clear messages
             messages.innerHTML = "";
-            // Focus username input
+            // Focus username input and clear it
             usernameInput.value = "";
-            usernameInput.focus();
+            setTimeout(() => {
+              usernameInput.focus();
+            }, 100);
+            
             // Show logout confirmation
             Swal.fire({
               icon: "success",
@@ -2361,60 +2415,6 @@
     </script>
   </body>
 </html>
-          } catch (error) {
-            console.error("Mesaj gönderme hatası:", error);
-
-            Swal.fire({
-              icon: "error",
-              title: "Mesaj Gönderilemedi",
-              text: "Bağlantı kontrol ediliyor...",
-              timer: 2000,
-              showConfirmButton: false,
-              toast: true,
-              position: "top-end",
-            });
-          }
-        } else if (!ws || ws.readyState !== WebSocket.OPEN) {
-          console.log("WebSocket bağlantısı yok, yeniden bağlanılıyor...");
-          Swal.fire({
-            icon: "warning",
-            title: "Bağlantı Kesildi",
-            text: "Yeniden bağlanmaya çalışılıyor...",
-            timer: 2000,
-            showConfirmButton: false,
-            toast: true,
-            position: "top-end",
-          });
-          connectWebSocket();
-        }
-      }
-
-      // Enhanced Sound management with multiple sound types
-      let isSoundEnabled = true;
-      let audioContext;
-      let currentSoundType = "beep";
-
-      // Sound storage
-      const soundTypes = {
-        beep: () => createBeepSound(),
-        ding: () => createDingSound(),
-        pop: () => createPopSound(),
-        chime: () => createChimeSound(),
-      };
-
-      // Initialize audio context and load saved sound preference
-      function initializeAudio() {
-        try {
-          audioContext = new (window.AudioContext ||
-            window.webkitAudioContext)();
-
-          // Load saved sound preference
-          const savedSound = localStorage.getItem("soundType");
-          if (savedSound && soundTypes[savedSound]) {
-            currentSoundType = savedSound;
-            document.getElementById("soundSelector").value = savedSound;
-          }
-
           // Load saved sound enabled state
           const savedSoundEnabled = localStorage.getItem("soundEnabled");
           if (savedSoundEnabled !== null) {

@@ -303,7 +303,49 @@ func (c *Client) readPump(hub *Hub) {
 		var msg Message
 		if err := json.Unmarshal(messageBytes, &msg); err != nil {
 			log.Printf("Mesaj parse hatası: %v", err)
-			// Skip malformed messages instead of creating fallback
+			continue
+		}
+
+		// Handle user connection with persistent ID
+		if msg.Message == "__USER_CONNECT__" && msg.Username != "" {
+			// Create persistent user ID based on username and timestamp
+			persistentID := fmt.Sprintf("user_%s_%d", msg.Username, time.Now().Unix())
+			c.ID = persistentID
+			c.Username = msg.Username
+
+			log.Printf("Kullanıcı bağlandı. Kalıcı ID: %s, Kullanıcı: %s", c.ID, c.Username)
+
+			// Send user connection confirmation back to the client
+			connectionMsg := map[string]interface{}{
+				"type":      "user_connected",
+				"username":  c.Username,
+				"userId":    c.ID,
+				"timestamp": time.Now(),
+			}
+			confirmationJSON, _ := json.Marshal(connectionMsg)
+			select {
+			case c.Send <- confirmationJSON:
+			default:
+			}
+
+			// Broadcast user connection to other clients
+			hub.mutex.RLock()
+			for client := range hub.clients {
+				if client != c {
+					select {
+					case client.Send <- confirmationJSON:
+					default:
+					}
+				}
+			}
+			hub.mutex.RUnlock()
+			continue
+		}
+
+		// Handle special request for recent messages
+		if msg.Message == "__GET_RECENT_MESSAGES__" {
+			log.Printf("Geçmiş mesajlar istendi: kanal=%s, kullanıcı=%s", msg.Channel, msg.Username)
+			go hub.sendRecentMessages(c, msg.Channel)
 			continue
 		}
 
@@ -329,7 +371,7 @@ func (c *Client) readPump(hub *Hub) {
 		// Set timestamp and default channel for regular messages
 		if msg.Type != "seen" {
 			// Always set server timestamp for new messages
-			if msg.Message != "__GET_RECENT_MESSAGES__" {
+			if msg.Message != "__GET_RECENT_MESSAGES__" && msg.Message != "__USER_CONNECT__" {
 				msg.Timestamp = time.Now()
 			}
 		}
@@ -338,13 +380,6 @@ func (c *Client) readPump(hub *Hub) {
 		}
 		if msg.Type == "" {
 			msg.Type = "text"
-		}
-
-		// Handle special request for recent messages
-		if msg.Message == "__GET_RECENT_MESSAGES__" {
-			log.Printf("Geçmiş mesajlar istendi: kanal=%s, kullanıcı=%s", msg.Channel, msg.Username)
-			go hub.sendRecentMessages(c, msg.Channel)
-			continue
 		}
 
 		log.Printf("Gelen mesaj: %s, Tip: %s, Kullanıcı: %s, Kanal: %s", msg.Message, msg.Type, msg.Username, msg.Channel)
@@ -380,6 +415,21 @@ func (h *Hub) run() {
 				close(client.Send)
 				if client.Username != "" {
 					log.Printf("Kullanıcı ayrıldı. ID: %s, Kullanıcı: %s", client.ID, client.Username)
+
+					// Send user disconnection message to all clients
+					disconnectionMsg := map[string]interface{}{
+						"type":      "user_disconnected",
+						"username":  client.Username,
+						"userId":    client.ID,
+						"timestamp": time.Now(),
+					}
+					msgJSON, _ := json.Marshal(disconnectionMsg)
+					for remainingClient := range h.clients {
+						select {
+						case remainingClient.Send <- msgJSON:
+						default:
+						}
+					}
 				} else {
 					log.Printf("Bağlantı kapatıldı. ID: %s", client.ID)
 				}
@@ -393,6 +443,11 @@ func (h *Hub) run() {
 			// Parse message to store in Redis
 			var msg Message
 			if err := json.Unmarshal(message, &msg); err == nil {
+				// Skip storing system messages like __USER_CONNECT__
+				if msg.Message == "__USER_CONNECT__" {
+					continue
+				}
+
 				// Handle "seen" message type
 				if msg.Type == "seen" && msg.Timestamp.Unix() > 0 && msg.Username != "" {
 					h.markMessageSeen(msg.Channel, msg.Timestamp, msg.Username)
@@ -415,8 +470,8 @@ func (h *Hub) run() {
 					continue
 				}
 
-				// Store regular messages (not "seen" messages)
-				if msg.Type != "seen" {
+				// Store regular messages (not "seen" messages or system messages)
+				if msg.Type != "seen" && msg.Message != "__USER_CONNECT__" && msg.Message != "__GET_RECENT_MESSAGES__" {
 					h.storeMessage(msg)
 				}
 			}
@@ -443,9 +498,10 @@ func serveWS(hub *Hub, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	clientID := fmt.Sprintf("%d%.3f", time.Now().Unix(), time.Now().Sub(time.Unix(time.Now().Unix(), 0)).Seconds())
+	// Generate temporary client ID - will be updated when user connects
+	tempID := fmt.Sprintf("temp_%d_%.3f", time.Now().Unix(), time.Now().Sub(time.Unix(time.Now().Unix(), 0)).Seconds())
 	client := &Client{
-		ID:   clientID,
+		ID:   tempID,
 		Conn: conn,
 		Send: make(chan []byte, 256),
 	}
