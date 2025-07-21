@@ -284,7 +284,7 @@ func (c *Client) readPump(hub *Hub) {
 		hub.unregister <- c
 		c.Conn.Close()
 	}()
-	c.Conn.SetReadLimit(1024) // Increase from 512 to 1024 bytes
+	c.Conn.SetReadLimit(8192)
 	c.Conn.SetReadDeadline(time.Now().Add(60 * time.Second))
 	c.Conn.SetPongHandler(func(string) error {
 		c.Conn.SetReadDeadline(time.Now().Add(60 * time.Second))
