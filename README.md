@@ -153,9 +153,10 @@ Messages are sent as JSON objects:
 
 ### Multi-channel Support
 
-- Three default channels: genel, rastgele, oyun
+- Two default channels: genel, numeroloji
 - Channel-specific message filtering
 - Easy channel switching with persistent state
+- Message history preserved per channel
 
 ### User Experience
 

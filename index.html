@@ -1196,15 +1196,52 @@
         }
       }
 
+      // Function to request recent messages from server
+      function requestRecentMessages(channel) {
+        if (ws && ws.readyState === WebSocket.OPEN && username) {
+          const requestMessage = {
+            username: username,
+            message: "__GET_RECENT_MESSAGES__",
+            channel: channel,
+            timestamp: new Date().toISOString()
+          };
+          console.log(`Requesting recent messages for channel: ${channel}`);
+          ws.send(JSON.stringify(requestMessage));
+        }
+      }
+
+      // Function to automatically send seen message for the latest message
+      function maybeSendSeenForLatestMessage() {
+        if (!lastMessageTimestamps[currentChannel] || !username) return;
+        
+        const seenMessage = {
+          username: username,
+          type: "seen",
+          channel: currentChannel,
+          timestamp: lastMessageTimestamps[currentChannel]
+        };
+        
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify(seenMessage));
+        }
+      }
+
       // Channel switching
       channels.forEach((channel) => {
         channel.addEventListener("click", () => {
+          const newChannel = channel.dataset.channel;
+          
+          // Only switch if it's actually a different channel
+          if (newChannel === currentChannel) {
+            return; // Don't do anything if clicking the same channel
+          }
+          
           const previousChannel = currentChannel;
 
           channels.forEach((ch) => ch.classList.remove("active"));
           channel.classList.add("active");
 
-          currentChannel = channel.dataset.channel;
+          currentChannel = newChannel;
           currentChannelName.textContent = currentChannel;
           
           // Update form visibility
@@ -1212,14 +1249,13 @@
 
           clearNotifications(currentChannel);
 
-          // Only clear and reload messages if switching to a different channel
-          if (previousChannel !== currentChannel) {
-            messages.innerHTML = "";
+          // Clear messages and load new channel's history
+          messages.innerHTML = "";
 
-            setTimeout(() => {
-              requestRecentMessages(currentChannel);
-            }, 100);
-          }
+          // Request recent messages for the new channel
+          setTimeout(() => {
+            requestRecentMessages(currentChannel);
+          }, 100);
         });
       });
 
@@ -2325,42 +2361,6 @@
     </script>
   </body>
 </html>
-            usernameInput.focus();
-            // Show logout confirmation
-            Swal.fire({
-              icon: "success",
-              title: "Çıkış Yapıldı",
-              text: "Başarıyla çıkış yaptınız",
-              timer: 1500,
-              showConfirmButton: false,
-              toast: true,
-              position: "top-end",
-            });
-          }
-        });
-      });
-
-      // Make functions global for onclick handlers
-      window.startReply = startReply;
-      window.cancelReply = cancelReply;
-      window.submitNumerology = submitNumerology;
-      window.requestRecentMessages = requestRecentMessages;
-    </script>
-  </body>
-</html>
-                message: replyingTo.message,
-                type: replyingTo.type
-              };
-            }
-
-            console.log("Mesaj gönderiliyor:", messageData);
-            ws.send(JSON.stringify(messageData));
-            messageInput.value = "";
-            
-            // Clear reply state
-            if (replyingTo) {
-              cancelReply();
-            }
           } catch (error) {
             console.error("Mesaj gönderme hatası:", error);
 
