@@ -1271,15 +1271,19 @@
           return response.json();
         })
         .then(data => {
-          // Create numerology message
+          console.log('Numerology API response:', data);
+          
+          // Create numerology message with correct data structure
           const numerologyMessage = {
             username: username,
             message: `${fullName} için numeroloji analizi yapıldı`,
             timestamp: new Date().toISOString(),
             channel: currentChannel,
             type: "numerology",
-            numerologyData: data
+            numerologyData: data  // API'den gelen tam veri
           };
+          
+          console.log('Sending numerology message:', numerologyMessage);
           
           if (ws && ws.readyState === WebSocket.OPEN) {
             ws.send(JSON.stringify(numerologyMessage));
@@ -1304,7 +1308,7 @@
           Swal.fire({
             icon: 'error',
             title: 'Analiz Hatası',
-            text: 'Numeroloji analizi yapılırken bir hata oluştu.',
+            text: 'Numeroloji analizi yapılırken bir hata oluştu. Lütfen tekrar deneyin.',
             confirmButtonText: 'Tamam'
           });
         })
@@ -1314,59 +1318,7 @@
         });
       }
 
-      // Add missing requestRecentMessages function
-      function requestRecentMessages(channel) {
-        if (ws && ws.readyState === WebSocket.OPEN) {
-          const requestMessage = {
-            username: username,
-            message: "__GET_RECENT_MESSAGES__",
-            channel: channel,
-            type: "request"
-          };
-          ws.send(JSON.stringify(requestMessage));
-        }
-      }
-
-      // Add function to send seen message automatically
-      function maybeSendSeenForLatestMessage() {
-        if (!lastMessageTimestamps[currentChannel] || !username) return;
-        
-        // Check if user is at bottom of messages (within 100px)
-        const isAtBottom = messages.scrollHeight - messages.scrollTop - messages.clientHeight < 100;
-        
-        // Only send seen if user is at bottom and document is visible
-        if (isAtBottom && !document.hidden) {
-          const seenMessage = {
-            username: username,
-            message: "",
-            timestamp: lastMessageTimestamps[currentChannel].toISOString(),
-            channel: currentChannel,
-            type: "seen"
-          };
-          
-          if (ws && ws.readyState === WebSocket.OPEN) {
-            ws.send(JSON.stringify(seenMessage));
-          }
-        }
-      }
-
-      // Add visibility change listener to send seen when user returns to tab
-      document.addEventListener('visibilitychange', () => {
-        if (!document.hidden) {
-          setTimeout(maybeSendSeenForLatestMessage, 500);
-        }
-      });
-
-      // Add scroll listener to messages container
-      messages.addEventListener('scroll', () => {
-        // Debounce scroll events
-        clearTimeout(window.scrollTimeout);
-        window.scrollTimeout = setTimeout(() => {
-          maybeSendSeenForLatestMessage();
-        }, 200);
-      });
-
-      // Enhanced displayMessage function to handle file messages, seen, and replies
+      // Enhanced displayMessage function to handle numerology messages properly
       function displayMessage(data) {
         if (data.message === "__GET_RECENT_MESSAGES__") {
           return;
@@ -1409,19 +1361,43 @@
 
           // Handle numerology messages
           if (data.type === "numerology" && data.numerologyData) {
-            const numerologyContent = `
-              <div class="api-response">
-                <h4>📊 Numeroloji Analizi Sonucu</h4>
-                <div class="result-item">
-                  <div class="result-number">Yaşam Yolu Sayısı: ${data.numerologyData.numerology_report.life_path_number.number}</div>
-                  <div class="result-text">${escapeHtml(data.numerologyData.numerology_report.life_path_number.interpretation)}</div>
+            console.log('Displaying numerology message:', data);
+            
+            let numerologyContent = '';
+            
+            // Check if we have the new format
+            if (data.numerologyData.numerology_report) {
+              const report = data.numerologyData.numerology_report;
+              const aiText = data.numerologyData.ai_interpretation || 'AI yorumu mevcut değil.';
+              
+              numerologyContent = `
+                <div class="api-response">
+                  <h4>🔮 ${data.numerologyData.request_data.full_name} için Numeroloji Analizi</h4>
+                  <div class="result-item">
+                    <div class="result-number">Yaşam Yolu Sayısı: ${report.life_path_number.number}</div>
+                    <div class="result-text">${escapeHtml(report.life_path_number.interpretation)}</div>
+                  </div>
+                  <div class="result-item">
+                    <div class="result-number">İsim Sayısı: ${report.name_number.number}</div>
+                    <div class="result-text">${escapeHtml(report.name_number.interpretation)}</div>
+                  </div>
+                  <div class="result-item">
+                    <div class="result-number">🤖 AI Yorumu:</div>
+                    <div class="result-text">${escapeHtml(aiText)}</div>
+                  </div>
                 </div>
-                <div class="result-item">
-                  <div class="result-number">İsim Sayısı: ${data.numerologyData.numerology_report.name_number.number}</div>
-                  <div class="result-text">${escapeHtml(data.numerologyData.numerology_report.name_number.interpretation)}</div>
+              `;
+            } else {
+              // Fallback for old format
+              numerologyContent = `
+                <div class="api-response">
+                  <h4>🔮 Numeroloji Analizi</h4>
+                  <div class="result-item">
+                    <div class="result-text">Analiz tamamlandı ancak detaylar gösterilemiyor.</div>
+                  </div>
                 </div>
-              </div>
-            `;
+              `;
+            }
 
             messageContent = `
               <div class="message-avatar">🔮</div>
@@ -2127,20 +2103,19 @@
         xhr.send(formData);
       }
 
-      // Update seen info in UI with blue checkmarks
+      // Update seen info in UI
       function updateSeenInfo(msgKey) {
         const seenBy = seenByMap[msgKey] || [];
-        const seenDivs = document.querySelectorAll(`.seen-info[data-msgkey="${msgKey}"]`);
+        const seenDivs = document.querySelectorAll(
+          `.seen-info[data-msgkey="${msgKey}"]`
+        );
         seenDivs.forEach((div) => {
           if (seenBy.length === 0) {
             div.innerHTML = "";
           } else {
-            const seenUsers = seenBy.filter(user => user !== username);
-            if (seenUsers.length > 0) {
-              div.innerHTML = `<span class="seen-checkmark" style="color: #007bff;">✓✓</span><span class="seen-users">${seenUsers.join(", ")}</span>`;
-            } else {
-              div.innerHTML = "";
-            }
+            div.innerHTML = `<span class="seen-checkmark">✓</span><span class="seen-users">${seenBy.join(
+              ", "
+            )}</span>`;
           }
         });
       }
@@ -2179,6 +2154,7 @@
               .then((res) => {
                 if (res.ok) {
                   messages.innerHTML = "";
+
                   Swal.fire({
                     icon: "success",
                     title: "Başarılı!",
@@ -2317,7 +2293,8 @@
             }
             // Clear saved username
             localStorage.removeItem("chatliyo_username");
-            // Reset variables            username = "";
+            // Reset variables
+            username = "";
             // Show login modal and hide app
             loginModal.style.display = "flex";
             app.style.display = "none";
@@ -2325,6 +2302,29 @@
             messages.innerHTML = "";
             // Focus username input
             usernameInput.value = "";
+            usernameInput.focus();
+            // Show logout confirmation
+            Swal.fire({
+              icon: "success",
+              title: "Çıkış Yapıldı",
+              text: "Başarıyla çıkış yaptınız",
+              timer: 1500,
+              showConfirmButton: false,
+              toast: true,
+              position: "top-end",
+            });
+          }
+        });
+      });
+
+      // Make functions global for onclick handlers
+      window.startReply = startReply;
+      window.cancelReply = cancelReply;
+      window.submitNumerology = submitNumerology;
+      window.requestRecentMessages = requestRecentMessages;
+    </script>
+  </body>
+</html>
             usernameInput.focus();
             // Show logout confirmation
             Swal.fire({

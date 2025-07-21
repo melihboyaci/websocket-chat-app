@@ -593,8 +593,8 @@ func handleNumerologyProxy(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Create request to numerology API
-	numerologyURL := "http://numerology-api:8000/numerology"
+	// Create request to numerology API - Nginx üzerinden yönlendir
+	numerologyURL := "https://api.melihboyaci.xyz/numerology"
 	req, err := http.NewRequest("POST", numerologyURL, bytes.NewBuffer(body))
 	if err != nil {
 		log.Printf("Numerology API request creation error: %v", err)
@@ -604,7 +604,6 @@ func handleNumerologyProxy(w http.ResponseWriter, r *http.Request) {
 
 	// Set headers
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("X-API-KEY", "websocket-chat-app-key-2024") // Use a valid API key
 
 	// Make request
 	client := &http.Client{Timeout: 30 * time.Second}
@@ -816,4 +815,5 @@ func handleFileUpload(hub *Hub, w http.ResponseWriter, r *http.Request) {
 		"fileSize": header.Size,
 		"filePath": filePath, // Sunucudaki tam dosya yolu (log için)
 	})
+}
 }
