@@ -816,4 +816,3 @@ func handleFileUpload(hub *Hub, w http.ResponseWriter, r *http.Request) {
 		"filePath": filePath, // Sunucudaki tam dosya yolu (log için)
 	})
 }
-}
