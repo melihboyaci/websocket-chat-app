@@ -842,6 +842,153 @@
         display: block;
       }
 
+      /* Emoji Picker Styles */
+      .emoji-picker {
+        position: absolute;
+        bottom: 70px;
+        right: 20px;
+        background: white;
+        border: 1px solid #e9ecef;
+        border-radius: 12px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+        width: 320px;
+        max-height: 300px;
+        display: none;
+        z-index: 1000;
+        overflow: hidden;
+      }
+
+      .emoji-picker.show {
+        display: block;
+        animation: fadeInUp 0.2s ease;
+      }
+
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .emoji-picker-header {
+        padding: 12px 16px;
+        border-bottom: 1px solid #e9ecef;
+        background: #f8f9fa;
+        font-size: 14px;
+        font-weight: 600;
+        color: #495057;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .emoji-picker-close {
+        background: none;
+        border: none;
+        color: #6c757d;
+        cursor: pointer;
+        font-size: 18px;
+        padding: 0;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        transition: all 0.2s ease;
+      }
+
+      .emoji-picker-close:hover {
+        background: #e9ecef;
+        color: #495057;
+      }
+
+      .emoji-categories {
+        display: flex;
+        padding: 8px 12px;
+        border-bottom: 1px solid #e9ecef;
+        background: white;
+      }
+
+      .emoji-category {
+        padding: 6px 8px;
+        margin: 0 2px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 16px;
+        transition: all 0.2s ease;
+        opacity: 0.7;
+      }
+
+      .emoji-category:hover,
+      .emoji-category.active {
+        background: #667eea;
+        opacity: 1;
+        transform: scale(1.1);
+      }
+
+      .emoji-grid {
+        padding: 12px;
+        max-height: 200px;
+        overflow-y: auto;
+        display: grid;
+        grid-template-columns: repeat(8, 1fr);
+        gap: 4px;
+      }
+
+      .emoji-item {
+        padding: 8px;
+        text-align: center;
+        cursor: pointer;
+        border-radius: 6px;
+        font-size: 20px;
+        transition: all 0.2s ease;
+        user-select: none;
+      }
+
+      .emoji-item:hover {
+        background: #f8f9fa;
+        transform: scale(1.2);
+      }
+
+      .emoji-button {
+        background: #ffc107;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 36px;
+        height: 36px;
+        cursor: pointer;
+        margin-left: 8px;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+      }
+
+      .emoji-button:hover {
+        background: #e0a800;
+        transform: scale(1.05);
+      }
+
+      .emoji-grid::-webkit-scrollbar {
+        width: 4px;
+      }
+
+      .emoji-grid::-webkit-scrollbar-track {
+        background: transparent;
+      }
+
+      .emoji-grid::-webkit-scrollbar-thumb {
+        background: #dee2e6;
+        border-radius: 2px;
+      }
+
       /* Responsive */
       @media (max-width: 768px) {
         .app {
@@ -992,6 +1139,9 @@
               id="messageInput"
               placeholder="#genel kanalına mesaj gönder"
             />
+            <button class="emoji-button" id="emojiButton" title="Emoji Ekle">
+              😀
+            </button>
             <button class="upload-button" id="uploadButton" title="Dosya Yükle">
               📎
             </button>
@@ -1005,6 +1155,27 @@
                 <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
               </svg>
             </button>
+          </div>
+        </div>
+
+        <!-- Emoji Picker -->
+        <div class="emoji-picker" id="emojiPicker">
+          <div class="emoji-picker-header">
+            <span>Emoji Seç</span>
+            <button class="emoji-picker-close" id="emojiPickerClose">&times;</button>
+          </div>
+          <div class="emoji-categories">
+            <div class="emoji-category active" data-category="smileys" title="Gülücükler">😀</div>
+            <div class="emoji-category" data-category="people" title="İnsanlar">👤</div>
+            <div class="emoji-category" data-category="nature" title="Doğa">🌿</div>
+            <div class="emoji-category" data-category="food" title="Yemek">🍕</div>
+            <div class="emoji-category" data-category="activities" title="Aktiviteler">⚽</div>
+            <div class="emoji-category" data-category="travel" title="Seyahat">🚗</div>
+            <div class="emoji-category" data-category="objects" title="Objeler">💡</div>
+            <div class="emoji-category" data-category="symbols" title="Semboller">❤️</div>
+          </div>
+          <div class="emoji-grid" id="emojiGrid">
+            <!-- Emojiler buraya yüklenecek -->
           </div>
         </div>
 
@@ -2438,6 +2609,119 @@
       window.submitNumerology = submitNumerology;
       window.requestRecentMessages = requestRecentMessages;
 
+      // Emoji functionality
+      const emojiButton = document.getElementById('emojiButton');
+      const emojiPicker = document.getElementById('emojiPicker');
+      const emojiPickerClose = document.getElementById('emojiPickerClose');
+      const emojiGrid = document.getElementById('emojiGrid');
+      const emojiCategories = document.querySelectorAll('.emoji-category');
+
+      // Emoji categories with popular emojis
+      const emojis = {
+        smileys: ['😀', '😃', '😄', '😁', '😅', '😂', '🤣', '😊', '😇', '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚', '😋', '😛', '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🥸', '🤩', '🥳', '😏', '😒', '😞', '😔', '😟', '😕', '🙁', '☹️', '😣', '😖', '😫', '😩', '🥺', '😢', '😭', '😤', '😠', '😡', '🤬', '🤯', '😳', '🥵', '🥶', '😱', '😨', '😰', '😥', '😓'],
+        people: ['👋', '🤚', '🖐️', '✋', '🖖', '👌', '🤌', '🤏', '✌️', '🤞', '🤟', '🤘', '🤙', '👈', '👉', '👆', '🖕', '👇', '☝️', '👍', '👎', '👊', '✊', '🤛', '🤜', '👏', '🙌', '👐', '🤲', '🤝', '🙏', '✍️', '💅', '🤳', '💪', '🦾', '🦵', '🦿', '🦷', '🦴', '👀', '👁️', '👅', '👄', '👶', '🧒', '👦', '👧', '🧑', '👱', '👨', '🧔', '👩', '🧓', '👴', '👵', '🙍', '🙎', '🙅', '🙆', '💁', '🙋', '🧏', '🙇', '🤦', '🤷'],
+        nature: ['🌱', '🌿', '🍀', '🍃', '🌳', '🌲', '🌴', '🌵', '🌸', '🌺', '🌻', '🌹', '🥀', '🌷', '💐', '🌼', '🌙', '🌛', '🌜', '🌚', '🌕', '🌖', '🌗', '🌘', '🌑', '🌒', '🌓', '🌔', '🌎', '🌍', '🌏', '💫', '⭐', '🌟', '✨', '⚡', '☄️', '💥', '🔥', '🌪️', '🌈', '☀️', '🌤️', '⛅', '🌦️', '🌧️', '⛈️', '🌩️', '🌨️', '❄️', '☃️', '⛄', '🌬️', '💨', '💧', '💦', '☔', '🌊'],
+        food: ['🍏', '🍎', '🍐', '🍊', '🍋', '🍌', '🍉', '🍇', '🍓', '🫐', '🍈', '🍒', '🍑', '🥭', '🍍', '🥥', '🥝', '🍅', '🍆', '🥑', '🥦', '🥬', '🥒', '🌶️', '🫑', '🌽', '🥕', '🫒', '🧄', '🧅', '🥔', '🍠', '🥐', '🥖', '🍞', '🥨', '🥯', '🍳', '🧀', '🥓', '🥞', '🧇', '🍗', '🍖', '🌭', '🍔', '🍟', '🍕', '🥪', '🥙', '🌮', '🌯', '🫔', '🥗', '🥘', '🫕', '🍝', '🍜', '🍲', '🍛', '🍣', '🍱', '🥟', '🦪', '🍤', '🍙', '🍚', '🍘', '🍥', '🥠', '🥮', '🍢', '🍡', '🍧', '🍨', '🍦', '🥧', '🧁', '🍰', '🎂', '🍮', '🍭', '🍬', '🍫', '🍿', '🍩', '🍪', '🌰', '🥜', '🍯'],
+        activities: ['⚽', '🏀', '🏈', '⚾', '🥎', '🎾', '🏐', '🏉', '🥏', '🎱', '🪀', '🏓', '🏸', '🏒', '🏑', '🥍', '🏏', '🪃', '🥅', '⛳', '🪁', '🏹', '🎣', '🤿', '🥊', '🥋', '🎽', '🛹', '🛼', '🛷', '⛸️', '🥌', '🎿', '⛷️', '🏂', '🪂', '🏋️', '🤼', '🤸', '⛹️', '🤺', '🤾', '🏌️', '🏇', '🧘', '🏄', '🏊', '🤽', '🚣', '🧗', '🚵', '🚴', '🏆', '🥇', '🥈', '🥉', '🏅', '🎖️', '🏵️', '🎗️', '🎫', '🎟️', '🎪', '🤹', '🎭', '🩰', '🎨', '🎬', '🎤', '🎧', '🎼', '🎵', '🎶', '🥁', '🪘', '🎹', '🎺', '🎷', '🎸', '🪕', '🎻'],
+        travel: ['🚗', '🚕', '🚙', '🚌', '🚎', '🏎️', '🚓', '🚑', '🚒', '🚐', '🛻', '🚚', '🚛', '🚜', '🏍️', '🛵', '🚲', '🛴', '🛹', '🚁', '🛸', '✈️', '🛫', '🛬', '🪂', '💺', '🚀', '🛰️', '🚊', '🚝', '🚄', '🚅', '🚈', '🚞', '🚋', '🚃', '🚟', '🚠', '🚡', '⛴️', '🛥️', '🚤', '⛵', '🛶', '🚢', '🏰', '🏯', '🏟️', '🎡', '🎢', '🎠', '⛲', '⛱️', '🏖️', '🏝️', '🏜️', '🌋', '⛰️', '🏔️', '🗻', '🏕️', '⛺', '🛤️', '🛣️', '🗺️', '🗾', '🏞️', '🎑', '🏟️', '🏛️', '🏗️', '🧱'],
+        objects: ['⌚', '📱', '📲', '💻', '⌨️', '🖥️', '🖨️', '🖱️', '🖲️', '🕹️', '🗜️', '💽', '💾', '💿', '📀', '📼', '📷', '📸', '📹', '🎥', '📽️', '🎞️', '📞', '☎️', '📟', '📠', '📺', '📻', '🎙️', '🎚️', '🎛️', '🧭', '⏱️', '⏲️', '⏰', '🕰️', '⌛', '⏳', '📡', '🔋', '🔌', '💡', '🔦', '🕯️', '🪔', '🧯', '🛢️', '💸', '💵', '💴', '💶', '💷', '🪙', '💰', '💳', '💎', '⚖️', '🪜', '🧰', '🔧', '🔨', '⚒️', '🛠️', '⛏️', '🔩', '⚙️', '🪚', '🧲'],
+        symbols: ['❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '💔', '❣️', '💕', '💞', '💓', '💗', '💖', '💘', '💝', '💟', '☮️', '✝️', '☪️', '🕉️', '☸️', '✡️', '🔯', '🕎', '☯️', '☦️', '🛐', '⛎', '♈', '♉', '♊', '♋', '♌', '♍', '♎', '♏', '♐', '♑', '♒', '♓', '🆔', '⚛️', '🉑', '☢️', '☣️', '📴', '📳', '🈶', '🈚', '🈸', '🈺', '🈷️', '✴️', '🆚', '💮', '🉐', '㊙️', '㊗️', '🈴', '🈵', '🈹', '🈲', '🅰️', '🅱️', '🆎', '🆑', '🅾️', '🆘', '❌', '⭕', '🛑', '⛔', '📛', '🚫', '💯', '💢', '♨️', '🚷', '🚯', '🚳', '🚱', '🔞', '📵', '🚭']
+      };
+
+      let currentEmojiCategory = 'smileys';
+
+      // Initialize emoji picker
+      function initializeEmojiPicker() {
+        loadEmojis(currentEmojiCategory);
+        
+        // Category click handlers
+        emojiCategories.forEach(category => {
+          category.addEventListener('click', () => {
+            const categoryName = category.dataset.category;
+            
+            // Update active category
+            emojiCategories.forEach(cat => cat.classList.remove('active'));
+            category.classList.add('active');
+            
+            // Load emojis for category
+            currentEmojiCategory = categoryName;
+            loadEmojis(categoryName);
+          });
+        });
+      }
+
+      // Load emojis for category
+      function loadEmojis(category) {
+        const categoryEmojis = emojis[category] || emojis.smileys;
+        emojiGrid.innerHTML = '';
+        
+        categoryEmojis.forEach(emoji => {
+          const emojiElement = document.createElement('div');
+          emojiElement.className = 'emoji-item';
+          emojiElement.textContent = emoji;
+          emojiElement.addEventListener('click', () => {
+            insertEmoji(emoji);
+          });
+          emojiGrid.appendChild(emojiElement);
+        });
+      }
+
+      // Insert emoji into message input
+      function insertEmoji(emoji) {
+        const currentValue = messageInput.value;
+        const cursorPosition = messageInput.selectionStart;
+        
+        const newValue = currentValue.slice(0, cursorPosition) + emoji + currentValue.slice(cursorPosition);
+        messageInput.value = newValue;
+        
+        // Set cursor position after emoji
+        const newCursorPosition = cursorPosition + emoji.length;
+        messageInput.setSelectionRange(newCursorPosition, newCursorPosition);
+        
+        // Focus back to input
+        messageInput.focus();
+        
+        // Hide emoji picker
+        hideEmojiPicker();
+      }
+
+      // Show emoji picker
+      function showEmojiPicker() {
+        emojiPicker.classList.add('show');
+        
+        // Close on click outside
+        document.addEventListener('click', handleEmojiPickerOutsideClick);
+      }
+
+      // Hide emoji picker
+      function hideEmojiPicker() {
+        emojiPicker.classList.remove('show');
+        document.removeEventListener('click', handleEmojiPickerOutsideClick);
+      }
+
+      // Handle click outside emoji picker
+      function handleEmojiPickerOutsideClick(event) {
+        if (!emojiPicker.contains(event.target) && !emojiButton.contains(event.target)) {
+          hideEmojiPicker();
+        }
+      }
+
+      // Emoji button click
+      emojiButton.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (emojiPicker.classList.contains('show')) {
+          hideEmojiPicker();
+        } else {
+          showEmojiPicker();
+        }
+      });
+
+      // Emoji picker close button
+      emojiPickerClose.addEventListener('click', hideEmojiPicker);
+
+      // Initialize emoji picker when page loads
+      initializeEmojiPicker();
+
       // Helper function to get color class based on number
       function getColorClass(number) {
         const colorMap = {
@@ -2459,290 +2743,6 @@
     </script>
   </body>
 </html>
-          33: 'color-crystal'
-        };
-        return colorMap[number] || 'color-crystal';
-      }
-    </script>
-  </body>
-</html>
-        oscillator.frequency.exponentialRampToValueAtTime(
-          800,
-          audioContext.currentTime + 0.5
-        );
-
-        gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-        gainNode.gain.linearRampToValueAtTime(
-          0.4,
-          audioContext.currentTime + 0.01
-        );
-        gainNode.gain.exponentialRampToValueAtTime(
-          0.01,
-          audioContext.currentTime + 0.5
-        );
-
-        oscillator.start(audioContext.currentTime);
-        oscillator.stop(audioContext.currentTime + 0.5);
-      }
-
-      function createPopSound() {
-        if (!audioContext) return;
-
-        const oscillator = audioContext.createOscillator();
-        const gainNode = audioContext.createGain();
-
-        oscillator.connect(gainNode);
-        gainNode.connect(audioContext.destination);
-
-        oscillator.frequency.setValueAtTime(300, audioContext.currentTime);
-        oscillator.frequency.exponentialRampToValueAtTime(
-          100,
-          audioContext.currentTime + 0.1
-        );
-
-        gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-        gainNode.gain.linearRampToValueAtTime(
-          0.5,
-          audioContext.currentTime + 0.01
-        );
-        gainNode.gain.exponentialRampToValueAtTime(
-          0.01,
-          audioContext.currentTime + 0.1
-        );
-
-        oscillator.start(audioContext.currentTime);
-        oscillator.stop(audioContext.currentTime + 0.1);
-      }
-
-      function createChimeSound() {
-        if (!audioContext) return;
-
-        // Create multiple oscillators for a richer chime sound
-        const frequencies = [523.25, 659.25, 783.99]; // C5, E5, G5
-
-        frequencies.forEach((freq, index) => {
-          const oscillator = audioContext.createOscillator();
-          const gainNode = audioContext.createGain();
-
-          oscillator.connect(gainNode);
-          gainNode.connect(audioContext.destination);
-
-          oscillator.frequency.setValueAtTime(freq, audioContext.currentTime);
-
-          const startTime = audioContext.currentTime + index * 0.1;
-          gainNode.gain.setValueAtTime(0, startTime);
-          gainNode.gain.linearRampToValueAtTime(0.2, startTime + 0.01);
-          gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + 0.8);
-
-          oscillator.start(startTime);
-          oscillator.stop(startTime + 0.8);
-        });
-      }
-
-      // Play notification sound
-      function playNotificationSound() {
-        if (!isSoundEnabled || !audioContext) return;
-
-        try {
-          // Resume audio context if it's suspended (browser policy)
-          if (audioContext.state === "suspended") {
-            audioContext.resume();
-          }
-
-          const soundFunction = soundTypes[currentSoundType];
-          if (soundFunction) {
-            soundFunction();
-          }
-        } catch (error) {
-          console.log("Error playing notification sound:", error);
-        }
-      }
-
-      // Update sound toggle UI
-      function updateSoundToggleUI() {
-        const soundToggle = document.getElementById("soundToggle");
-        const soundIcon = document.getElementById("soundIcon");
-        const soundText = document.getElementById("soundText");
-
-        if (isSoundEnabled) {
-          soundToggle.classList.remove("muted");
-          soundText.textContent = "Sesli";
-          soundIcon.innerHTML = `
-                    <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
-                `;
-        } else {
-          soundToggle.classList.add("muted");
-          soundText.textContent = "Sessiz";
-          soundIcon.innerHTML = `
-                    <path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/>
-                `;
-        }
-      }
-
-      // Sound control event listeners
-      const soundToggle = document.getElementById("soundToggle");
-      const soundSelector = document.getElementById("soundSelector");
-      const soundTestBtn = document.getElementById("soundTestBtn");
-
-      // Sound toggle functionality
-      soundToggle.addEventListener("click", () => {
-        isSoundEnabled = !isSoundEnabled;
-        localStorage.setItem("soundEnabled", isSoundEnabled.toString());
-        updateSoundToggleUI();
-
-        if (isSoundEnabled) {
-          // Initialize audio on first enable
-          if (!audioContext) {
-            initializeAudio();
-          }
-
-          Swal.fire({
-            icon: "success",
-            title: "Ses Açıldı",
-            text: "Bildirim sesleri aktif",
-            timer: 1500,
-            showConfirmButton: false,
-            toast: true,
-            position: "top-end",
-          });
-        } else {
-          Swal.fire({
-            icon: "info",
-            title: "Ses Kapatıldı",
-            text: "Bildirim sesleri kapalı",
-            timer: 1500,
-            showConfirmButton: false,
-            toast: true,
-            position: "top-end",
-          });
-        }
-      });
-
-      // Sound selector change
-      soundSelector.addEventListener("change", (e) => {
-        currentSoundType = e.target.value;
-        localStorage.setItem("soundType", currentSoundType);
-
-        Swal.fire({
-          icon: "info",
-          title: "Ses Değiştirildi",
-          text: `Yeni ses: ${e.target.options[e.target.selectedIndex].text}`,
-          timer: 1500,
-          showConfirmButton: false,
-          toast: true,
-          position: "top-end",
-        });
-      });
-
-      // Sound test button
-      soundTestBtn.addEventListener("click", () => {
-        if (!audioContext) {
-          initializeAudio();
-        }
-
-        if (isSoundEnabled) {
-          playNotificationSound();
-        } else {
-          Swal.fire({
-            icon: "warning",
-            title: "Ses Kapalı",
-            text: "Ses testini duymak için sesi açın",
-            timer: 1500,
-            showConfirmButton: false,
-            toast: true,
-            position: "top-end",
-          });
-        }
-      });
-
-      // File upload functionality
-      const fileInput = document.getElementById("fileInput");
-      const uploadButton = document.getElementById("uploadButton");
-      const fileUploadArea = document.getElementById("fileUploadArea");
-      const uploadProgress = document.getElementById("uploadProgress");
-      const uploadProgressBar = document.getElementById("uploadProgressBar");
-
-      // File upload button click
-      uploadButton.addEventListener("click", () => {
-        if (!fileUploadArea.classList.contains("show")) {
-          fileUploadArea.classList.add("show");
-        } else {
-          fileInput.click();
-        }
-      });
-
-      // File upload area click
-      fileUploadArea.addEventListener("click", () => {
-        fileInput.click();
-      });
-
-      // File input change
-      fileInput.addEventListener("change", (e) => {
-        if (e.target.files.length > 0) {
-          uploadFile(e.target.files[0]);
-        }
-      });
-
-      // Drag and drop functionality
-      fileUploadArea.addEventListener("dragover", (e) => {
-        e.preventDefault();
-        fileUploadArea.classList.add("dragover");
-      });
-
-      fileUploadArea.addEventListener("dragleave", () => {
-        fileUploadArea.classList.remove("dragover");
-      });
-
-      fileUploadArea.addEventListener("drop", (e) => {
-        e.preventDefault();
-        fileUploadArea.classList.remove("dragover");
-
-        if (e.dataTransfer.files.length > 0) {
-          uploadFile(e.dataTransfer.files[0]);
-        }
-      });
-
-      // Helper functions for file handling
-      function formatFileSize(bytes) {
-        if (bytes === 0) return "0 Bytes";
-        const k = 1024;
-        const sizes = ["Bytes", "KB", "MB", "GB"];
-        const i = Math.floor(Math.log(bytes) / Math.log(k));
-        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
-      }
-
-      function getFileIcon(fileName) {
-        const ext = fileName.split(".").pop().toLowerCase();
-        const icons = {
-          pdf: "📄",
-          doc: "📝",
-          docx: "📝",
-          xls: "📊",
-          xlsx: "📊",
-          txt: "📃",
-          zip: "📦",
-          rar: "📦",
-          jpg: "🖼️",
-          jpeg: "🖼️",
-          png: "🖼️",
-          gif: "🖼️",
-          bmp: "🖼️",
-          webp: "🖼️",
-        };
-        return icons[ext] || "📎";
-      }
-
-      // Enhanced upload file function with better error handling
-      function uploadFile(file) {
-        // Enhanced file validation
-        const maxSize = 10 * 1024 * 1024; // 10MB
-        const allowedTypes = [
-          "image/jpeg",
-          "image/png",
-          "image/gif",
-          "image/webp",
-          "image/bmp",
-          "text/plain",
           "application/pdf",
           "application/zip",
           "application/x-zip-compressed",
