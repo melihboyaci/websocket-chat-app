@@ -477,11 +477,31 @@
 
       .messages::-webkit-scrollbar-thumb {
         background: #dee2e6;
-        border-radius: 3px;
+        border-radius: 2px;
       }
 
-      .messages::-webkit-scrollbar-thumb:hover {
-        background: #ced4da;
+      /* Emoji-only message styling */
+      .emoji-only-message {
+        font-size: 48px !important;
+        line-height: 1.2 !important;
+        text-align: center;
+        padding: 20px !important;
+      }
+
+      .emoji-only-message .message-text {
+        font-size: 48px !important;
+        line-height: 1.2 !important;
+      }
+
+      /* Responsive emoji size */
+      @media (max-width: 768px) {
+        .emoji-only-message {
+          font-size: 36px !important;
+        }
+        
+        .emoji-only-message .message-text {
+          font-size: 36px !important;
+        }
       }
 
       /* File upload styles */
@@ -1596,6 +1616,20 @@
         });
       }
 
+      // Helper function to detect if message contains only emojis
+      function isEmojiOnly(text) {
+        if (!text || text.trim() === '') return false;
+        
+        // Remove all whitespace
+        const cleanText = text.replace(/\s/g, '');
+        
+        // Check if string contains only emojis
+        // This regex matches Unicode emoji ranges
+        const emojiRegex = /^[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E0}-\u{1F1FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F900}-\u{1F9FF}\u{1F018}-\u{1F0F5}\u{1F191}-\u{1F251}\u{1F004}\u{1F0CF}\u{1F170}-\u{1F171}\u{1F17E}-\u{1F17F}\u{1F18E}\u{3030}\u{2B50}\u{2B55}\u{2934}-\u{2935}\u{2B05}-\u{2B07}\u{2B1B}-\u{2B1C}\u{3297}\u{3299}\u{303D}\u{00A9}\u{00AE}\u{2122}\u{23F3}\u{24C2}\u{23E9}-\u{23EF}\u{25B6}\u{23F8}-\u{23FA}\u{200D}\u{2640}-\u{2642}\u{2695}\u{26F9}\u{270A}-\u{270D}\u{1F385}\u{1F3C2}-\u{1F3C4}\u{1F3C7}\u{1F3CA}-\u{1F3CC}\u{1F3FB}-\u{1F3FF}\u{1F90D}-\u{1F93A}\u{1F93C}-\u{1F945}\u{1F947}-\u{1F971}\u{1F973}-\u{1F976}\u{1F97A}-\u{1F9A2}\u{1F9A5}-\u{1F9AA}\u{1F9AE}-\u{1F9CA}\u{1F9CD}-\u{1F9FF}\u{1FA70}-\u{1FA73}\u{1FA78}-\u{1FA7A}\u{1FA80}-\u{1FA82}\u{1FA90}-\u{1FA95}]+$/u;
+        
+        return emojiRegex.test(cleanText) && cleanText.length <= 10; // Max 10 emojis to be considered "emoji only"
+      }
+
       // Enhanced displayMessage function to filter out system messages
       function displayMessage(data) {
         // Skip system connection messages
@@ -1750,7 +1784,7 @@
           } else {
             messageContent = `
               <div class="message-avatar">${data.username.charAt(0).toUpperCase()}</div>
-              <div class="message-content">
+              <div class="message-content ${isEmojiOnly(data.message) ? 'emoji-only-message' : ''}">
                 <div class="message-header">
                   <span class="message-author">${escapeHtml(data.username)}</span>
                   <span class="message-timestamp">${timeString}</span>
@@ -2743,40 +2777,6 @@
     </script>
   </body>
 </html>
-          "application/pdf",
-          "application/zip",
-          "application/x-zip-compressed",
-          "application/rar",
-          "application/msword",
-          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-          "application/vnd.ms-excel",
-          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        ];
-
-        // File size validation
-        if (file.size > maxSize) {
-          Swal.fire({
-            icon: "error",
-            title: "Dosya Çok Büyük",
-            text: `Maksimum dosya boyutu ${formatFileSize(
-              maxSize
-            )} olmalıdır. Seçilen dosya: ${formatFileSize(file.size)}`,
-            confirmButtonText: "Tamam",
-          });
-          return;
-        }
-
-        // File type validation
-        if (!allowedTypes.includes(file.type) && file.type !== "") {
-          // Check by extension if MIME type is not available
-          const ext = file.name.split(".").pop().toLowerCase();
-          const validExtensions = [
-            "jpg",
-            "jpeg",
-            "png",
-            "gif",
-            "webp",
-            "bmp",
             "pdf",
             "txt",
             "zip",
