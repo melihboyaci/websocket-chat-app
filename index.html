@@ -482,25 +482,25 @@
 
       /* Emoji-only message styling */
       .emoji-only-message {
-        font-size: 48px !important;
+        font-size: 56px !important;
         line-height: 1.2 !important;
         text-align: center;
         padding: 20px !important;
       }
 
       .emoji-only-message .message-text {
-        font-size: 48px !important;
+        font-size: 56px !important;
         line-height: 1.2 !important;
       }
 
       /* Responsive emoji size */
       @media (max-width: 768px) {
         .emoji-only-message {
-          font-size: 36px !important;
+          font-size: 42px !important;
         }
         
         .emoji-only-message .message-text {
-          font-size: 36px !important;
+          font-size: 42px !important;
         }
       }
 
@@ -872,7 +872,7 @@
         border-radius: 12px;
         box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
         width: 320px;
-        max-height: 300px;
+        max-height: 450px;
         display: none;
         z-index: 1000;
         overflow: hidden;
@@ -953,26 +953,26 @@
 
       .emoji-grid {
         padding: 12px;
-        max-height: 200px;
+        max-height: 350px;
         overflow-y: auto;
         display: grid;
         grid-template-columns: repeat(8, 1fr);
         gap: 4px;
+        justify-items: start;
       }
 
       .emoji-item {
         padding: 8px;
-        text-align: center;
+        text-align: left;
         cursor: pointer;
         border-radius: 6px;
-        font-size: 20px;
+        font-size: 28px;
         transition: all 0.2s ease;
         user-select: none;
-      }
-
-      .emoji-item:hover {
-        background: #f8f9fa;
-        transform: scale(1.2);
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
       }
 
       .emoji-button {
@@ -2175,6 +2175,7 @@
         }
 
         if (isSoundEnabled) {
+
           playNotificationSound();
         } else {
           Swal.fire({
@@ -2777,7 +2778,6 @@
     </script>
   </body>
 </html>
-            "pdf",
             "txt",
             "zip",
             "rar",
