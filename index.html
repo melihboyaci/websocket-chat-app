@@ -498,7 +498,7 @@
         .emoji-only-message {
           font-size: 42px !important;
         }
-        
+
         .emoji-only-message .message-text {
           font-size: 42px !important;
         }
@@ -744,18 +744,55 @@
         margin: 2px 0;
       }
 
-      .color-red { color: #dc3545; background-color: rgba(220, 53, 69, 0.1); }
-      .color-orange { color: #fd7e14; background-color: rgba(253, 126, 20, 0.1); }
-      .color-yellow { color: #ffc107; background-color: rgba(255, 193, 7, 0.1); }
-      .color-green { color: #28a745; background-color: rgba(40, 167, 69, 0.1); }
-      .color-blue { color: #007bff; background-color: rgba(0, 123, 255, 0.1); }
-      .color-indigo { color: #6610f2; background-color: rgba(102, 16, 242, 0.1); }
-      .color-purple { color: #6f42c1; background-color: rgba(111, 66, 193, 0.1); }
-      .color-pink { color: #e83e8c; background-color: rgba(232, 62, 140, 0.1); }
-      .color-bronze { color: #cd7f32; background-color: rgba(205, 127, 50, 0.1); }
-      .color-silver { color: #c0c0c0; background-color: rgba(192, 192, 192, 0.1); }
-      .color-gold { color: #ffd700; background-color: rgba(255, 215, 0, 0.1); }
-      .color-crystal { color: #f8f9fa; background-color: rgba(248, 249, 250, 0.2); border: 1px solid #dee2e6; }
+      .color-red {
+        color: #dc3545;
+        background-color: rgba(220, 53, 69, 0.1);
+      }
+      .color-orange {
+        color: #fd7e14;
+        background-color: rgba(253, 126, 20, 0.1);
+      }
+      .color-yellow {
+        color: #ffc107;
+        background-color: rgba(255, 193, 7, 0.1);
+      }
+      .color-green {
+        color: #28a745;
+        background-color: rgba(40, 167, 69, 0.1);
+      }
+      .color-blue {
+        color: #007bff;
+        background-color: rgba(0, 123, 255, 0.1);
+      }
+      .color-indigo {
+        color: #6610f2;
+        background-color: rgba(102, 16, 242, 0.1);
+      }
+      .color-purple {
+        color: #6f42c1;
+        background-color: rgba(111, 66, 193, 0.1);
+      }
+      .color-pink {
+        color: #e83e8c;
+        background-color: rgba(232, 62, 140, 0.1);
+      }
+      .color-bronze {
+        color: #cd7f32;
+        background-color: rgba(205, 127, 50, 0.1);
+      }
+      .color-silver {
+        color: #c0c0c0;
+        background-color: rgba(192, 192, 192, 0.1);
+      }
+      .color-gold {
+        color: #ffd700;
+        background-color: rgba(255, 215, 0, 0.1);
+      }
+      .color-crystal {
+        color: #f8f9fa;
+        background-color: rgba(248, 249, 250, 0.2);
+        border: 1px solid #dee2e6;
+      }
 
       /* Reply styles */
       .reply-preview {
@@ -1182,17 +1219,47 @@
         <div class="emoji-picker" id="emojiPicker">
           <div class="emoji-picker-header">
             <span>Emoji Seç</span>
-            <button class="emoji-picker-close" id="emojiPickerClose">&times;</button>
+            <button class="emoji-picker-close" id="emojiPickerClose">
+              &times;
+            </button>
           </div>
           <div class="emoji-categories">
-            <div class="emoji-category active" data-category="smileys" title="Gülücükler">😀</div>
-            <div class="emoji-category" data-category="people" title="İnsanlar">👤</div>
-            <div class="emoji-category" data-category="nature" title="Doğa">🌿</div>
-            <div class="emoji-category" data-category="food" title="Yemek">🍕</div>
-            <div class="emoji-category" data-category="activities" title="Aktiviteler">⚽</div>
-            <div class="emoji-category" data-category="travel" title="Seyahat">🚗</div>
-            <div class="emoji-category" data-category="objects" title="Objeler">💡</div>
-            <div class="emoji-category" data-category="symbols" title="Semboller">❤️</div>
+            <div
+              class="emoji-category active"
+              data-category="smileys"
+              title="Gülücükler"
+            >
+              😀
+            </div>
+            <div class="emoji-category" data-category="people" title="İnsanlar">
+              👤
+            </div>
+            <div class="emoji-category" data-category="nature" title="Doğa">
+              🌿
+            </div>
+            <div class="emoji-category" data-category="food" title="Yemek">
+              🍕
+            </div>
+            <div
+              class="emoji-category"
+              data-category="activities"
+              title="Aktiviteler"
+            >
+              ⚽
+            </div>
+            <div class="emoji-category" data-category="travel" title="Seyahat">
+              🚗
+            </div>
+            <div class="emoji-category" data-category="objects" title="Objeler">
+              💡
+            </div>
+            <div
+              class="emoji-category"
+              data-category="symbols"
+              title="Semboller"
+            >
+              ❤️
+            </div>
           </div>
           <div class="emoji-grid" id="emojiGrid">
             <!-- Emojiler buraya yüklenecek -->
@@ -1205,14 +1272,23 @@
           <div class="form-row">
             <div class="form-field">
               <label for="fullName">Ad Soyad</label>
-              <input type="text" id="fullName" placeholder="Örn: Melih Boyacı" required />
+              <input
+                type="text"
+                id="fullName"
+                placeholder="Örn: Melih Boyacı"
+                required
+              />
             </div>
             <div class="form-field">
               <label for="birthDate">Doğum Tarihi</label>
               <input type="date" id="birthDate" required />
             </div>
           </div>
-          <button type="button" class="numerology-submit" onclick="submitNumerology()">
+          <button
+            type="button"
+            class="numerology-submit"
+            onclick="submitNumerology()"
+          >
             Analiz Et
           </button>
         </div>
@@ -1262,19 +1338,14 @@
         if (inputUsername && inputUsername.length > 0) {
           username = inputUsername;
           userId = ""; // Reset user ID for new login
-          
-          // Kullanıcı adını localStorage'a kaydet
-          localStorage.setItem("chatliyo_username", username);
-          localStorage.removeItem("chatliyo_user_id"); // Clear old ID
-          console.log("Kullanıcı adı kaydedildi:", username);
-          
+
           displayUsername.textContent = username;
           userAvatar.textContent = username.charAt(0).toUpperCase();
           loginModal.style.display = "none";
           app.style.display = "flex";
           initializeAudio();
           toggleNumerologyForm();
-          
+
           Swal.fire({
             icon: "success",
             title: "Hoş geldin!",
@@ -1288,35 +1359,14 @@
         }
       });
 
-      // Sayfa yüklendiğinde localStorage'dan kullanıcı adı ve ID kontrolü
+      // Sayfa yüklendiğinde her zaman login modal'ı göster
       window.addEventListener("DOMContentLoaded", () => {
-        const savedUsername = localStorage.getItem("chatliyo_username");
-        const savedUserId = localStorage.getItem("chatliyo_user_id");
-        console.log("Kaydedilmiş kullanıcı adı:", savedUsername);
-        console.log("Kaydedilmiş kullanıcı ID:", savedUserId);
-        
-        if (savedUsername && savedUsername.trim().length > 0) {
-          username = savedUsername.trim();
-          userId = savedUserId || ""; // Restore user ID if available
-          displayUsername.textContent = username;
-          userAvatar.textContent = username.charAt(0).toUpperCase();
-          loginModal.style.display = "none";
-          app.style.display = "flex";
-          initializeAudio();
-          // Initialize numerology form visibility
-          setTimeout(() => {
-            toggleNumerologyForm();
-          }, 100);
-          connectWebSocket();
-          console.log("Otomatik giriş yapıldı:", username, "ID:", userId);
-        } else {
-          loginModal.style.display = "flex";
-          app.style.display = "none";
-          setTimeout(() => {
-            usernameInput.focus();
-          }, 100);
-          console.log("Kullanıcı adı bulunamadı, giriş ekranı gösteriliyor");
-        }
+        loginModal.style.display = "flex";
+        app.style.display = "none";
+        setTimeout(() => {
+          usernameInput.focus();
+        }, 100);
+        console.log("Giriş ekranı gösteriliyor");
       });
 
       function connectWebSocket() {
@@ -1331,16 +1381,19 @@
           ws.onopen = () => {
             console.log("WebSocket bağlantısı kuruldu");
             reconnectAttempts = 0;
-            
+
             // Send user connection message with persistent ID request
             if (username) {
               const connectMessage = {
                 username: username,
                 message: "__USER_CONNECT__",
                 timestamp: new Date().toISOString(),
-                userId: userId // Send existing user ID if available
+                userId: userId, // Send existing user ID if available
               };
-              console.log("Kullanıcı bağlantı mesajı gönderiliyor:", connectMessage);
+              console.log(
+                "Kullanıcı bağlantı mesajı gönderiliyor:",
+                connectMessage
+              );
               ws.send(JSON.stringify(connectMessage));
             }
 
@@ -1358,18 +1411,26 @@
                 const data = JSON.parse(line);
 
                 // Handle user connection confirmation
-                if (data.type === "user_connected" && data.username === username) {
+                if (
+                  data.type === "user_connected" &&
+                  data.username === username
+                ) {
                   userId = data.userId;
                   localStorage.setItem("chatliyo_user_id", userId);
                   console.log("Kullanıcı ID atandı:", userId);
-                  
+
                   // Show system message for own connection
-                  addSystemMessage(`${username} sohbete katıldı! (ID: ${userId.slice(-8)})`);
+                  addSystemMessage(
+                    `${username} sohbete katıldı! (ID: ${userId.slice(-8)})`
+                  );
                   continue;
                 }
 
                 // Handle other user connections
-                if (data.type === "user_connected" && data.username !== username) {
+                if (
+                  data.type === "user_connected" &&
+                  data.username !== username
+                ) {
                   addSystemMessage(`${data.username} sohbete katıldı!`);
                   continue;
                 }
@@ -1389,12 +1450,12 @@
                   updateSeenStatus(data);
                   continue;
                 }
-                
+
                 // Skip displaying __USER_CONNECT__ messages
                 if (data.message === "__USER_CONNECT__") {
                   continue;
                 }
-                
+
                 displayMessage(data);
               } catch (error) {
                 console.error("Mesaj parse hatası:", error);
@@ -1450,11 +1511,12 @@
 
       // Show/hide numerology form based on channel
       function toggleNumerologyForm() {
-        if (currentChannel === 'numeroloji') {
-          numerologyForm.classList.add('show');
-          messageInput.placeholder = '#numeroloji kanalına mesaj gönder veya yukarıdan analiz yapın';
+        if (currentChannel === "numeroloji") {
+          numerologyForm.classList.add("show");
+          messageInput.placeholder =
+            "#numeroloji kanalına mesaj gönder veya yukarıdan analiz yapın";
         } else {
-          numerologyForm.classList.remove('show');
+          numerologyForm.classList.remove("show");
           messageInput.placeholder = `#${currentChannel} kanalına mesaj gönder`;
         }
       }
@@ -1466,7 +1528,7 @@
             username: username,
             message: "__GET_RECENT_MESSAGES__",
             channel: channel,
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
           };
           console.log(`Requesting recent messages for channel: ${channel}`);
           ws.send(JSON.stringify(requestMessage));
@@ -1476,14 +1538,14 @@
       // Function to automatically send seen message for the latest message
       function maybeSendSeenForLatestMessage() {
         if (!lastMessageTimestamps[currentChannel] || !username) return;
-        
+
         const seenMessage = {
           username: username,
           type: "seen",
           channel: currentChannel,
-          timestamp: lastMessageTimestamps[currentChannel]
+          timestamp: lastMessageTimestamps[currentChannel],
         };
-        
+
         if (ws && ws.readyState === WebSocket.OPEN) {
           ws.send(JSON.stringify(seenMessage));
         }
@@ -1493,12 +1555,12 @@
       channels.forEach((channel) => {
         channel.addEventListener("click", () => {
           const newChannel = channel.dataset.channel;
-          
+
           // Only switch if it's actually a different channel
           if (newChannel === currentChannel) {
             return; // Don't do anything if clicking the same channel
           }
-          
+
           const previousChannel = currentChannel;
 
           channels.forEach((ch) => ch.classList.remove("active"));
@@ -1506,7 +1568,7 @@
 
           currentChannel = newChannel;
           currentChannelName.textContent = currentChannel;
-          
+
           // Update form visibility
           toggleNumerologyForm();
 
@@ -1523,118 +1585,127 @@
       });
 
       // Reply functionality
-      let replying to = null;
-      const replyInputContainer = document.createElement('div');
-      replyInputContainer.className = 'reply-input-container';
-      replyInputContainer.id = 'replyInputContainer';
-      
+      let replyingTo = null;
+      const replyInputContainer = document.createElement("div");
+      replyInputContainer.className = "reply-input-container";
+      replyInputContainer.id = "replyInputContainer";
+
       // Insert reply container before message input
-      const messageInputContainer = document.querySelector('.message-input-container');
-      messageInputContainer.parentNode.insertBefore(replyInputContainer, messageInputContainer);
+      const messageInputContainer = document.querySelector(
+        ".message-input-container"
+      );
+      messageInputContainer.parentNode.insertBefore(
+        replyInputContainer,
+        messageInputContainer
+      );
 
       // Numerology form functionality
       function submitNumerology() {
-        const fullName = document.getElementById('fullName').value.trim();
-        const birthDate = document.getElementById('birthDate').value;
-        const submitBtn = document.querySelector('.numerology-submit');
-        
+        const fullName = document.getElementById("fullName").value.trim();
+        const birthDate = document.getElementById("birthDate").value;
+        const submitBtn = document.querySelector(".numerology-submit");
+
         if (!fullName || !birthDate) {
           Swal.fire({
-            icon: 'error',
-            title: 'Eksik Bilgi',
-            text: 'Lütfen ad soyad ve doğum tarihi bilgilerini eksiksiz doldurun.',
-            confirmButtonText: 'Tamam'
+            icon: "error",
+            title: "Eksik Bilgi",
+            text: "Lütfen ad soyad ve doğum tarihi bilgilerini eksiksiz doldurun.",
+            confirmButtonText: "Tamam",
           });
           return;
         }
-        
+
         submitBtn.disabled = true;
-        submitBtn.textContent = 'Analiz ediliyor...';
-        
+        submitBtn.textContent = "Analiz ediliyor...";
+
         const requestData = {
           full_name: fullName,
-          birth_date: birthDate
+          birth_date: birthDate,
         };
-        
-        fetch('/api/numerology', {
-          method: 'POST',
+
+        fetch("/api/numerology", {
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json'
+            "Content-Type": "application/json",
           },
-          body: JSON.stringify(requestData)
+          body: JSON.stringify(requestData),
         })
-        .then(response => {
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-          }
-          return response.json();
-        })
-        .then(data => {
-          console.log('Numerology API response:', data);
-          
-          // Create numerology message with correct data structure
-          const numerologyMessage = {
-            username: username,
-            message: `${fullName} için numeroloji analizi yapıldı`,
-            timestamp: new Date().toISOString(),
-            channel: currentChannel,
-            type: "numerology",
-            numerologyData: data  // API'den gelen tam veri
-          };
-          
-          console.log('Sending numerology message:', numerologyMessage);
-          
-          if (ws && ws.readyState === WebSocket.OPEN) {
-            ws.send(JSON.stringify(numerologyMessage));
-          }
-          
-          // Clear form
-          document.getElementById('fullName').value = '';
-          document.getElementById('birthDate').value = '';
-          
-          Swal.fire({
-            icon: 'success',
-            title: 'Analiz Tamamlandı',
-            text: 'Numeroloji analizi başarıyla oluşturuldu.',
-            timer: 2000,
-            showConfirmButton: false,
-            toast: true,
-            position: 'top-end'
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+          })
+          .then((data) => {
+            console.log("Numerology API response:", data);
+
+            // Create numerology message with correct data structure
+            const numerologyMessage = {
+              username: username,
+              message: `${fullName} için numeroloji analizi yapıldı`,
+              timestamp: new Date().toISOString(),
+              channel: currentChannel,
+              type: "numerology",
+              numerologyData: data, // API'den gelen tam veri
+            };
+
+            console.log("Sending numerology message:", numerologyMessage);
+
+            if (ws && ws.readyState === WebSocket.OPEN) {
+              ws.send(JSON.stringify(numerologyMessage));
+            }
+
+            // Clear form
+            document.getElementById("fullName").value = "";
+            document.getElementById("birthDate").value = "";
+
+            Swal.fire({
+              icon: "success",
+              title: "Analiz Tamamlandı",
+              text: "Numeroloji analizi başarıyla oluşturuldu.",
+              timer: 2000,
+              showConfirmButton: false,
+              toast: true,
+              position: "top-end",
+            });
+          })
+          .catch((error) => {
+            console.error("Numerology API error:", error);
+            Swal.fire({
+              icon: "error",
+              title: "Analiz Hatası",
+              text: "Numeroloji analizi yapılırken bir hata oluştu. Lütfen tekrar deneyin.",
+              confirmButtonText: "Tamam",
+            });
+          })
+          .finally(() => {
+            submitBtn.disabled = false;
+            submitBtn.textContent = "Analiz Et";
           });
-        })
-        .catch(error => {
-          console.error('Numerology API error:', error);
-          Swal.fire({
-            icon: 'error',
-            title: 'Analiz Hatası',
-            text: 'Numeroloji analizi yapılırken bir hata oluştu. Lütfen tekrar deneyin.',
-            confirmButtonText: 'Tamam'
-          });
-        })
-        .finally(() => {
-          submitBtn.disabled = false;
-          submitBtn.textContent = 'Analiz Et';
-        });
       }
 
       // Helper function to detect if message contains only emojis
       function isEmojiOnly(text) {
-        if (!text || text.trim() === '') return false;
-        
+        if (!text || text.trim() === "") return false;
+
         // Remove all whitespace
-        const cleanText = text.replace(/\s/g, '');
-        
+        const cleanText = text.replace(/\s/g, "");
+
         // Check if string contains only emojis
         // This regex matches Unicode emoji ranges
-        const emojiRegex = /^[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E0}-\u{1F1FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F900}-\u{1F9FF}\u{1F018}-\u{1F0F5}\u{1F191}-\u{1F251}\u{1F004}\u{1F0CF}\u{1F170}-\u{1F171}\u{1F17E}-\u{1F17F}\u{1F18E}\u{3030}\u{2B50}\u{2B55}\u{2934}-\u{2935}\u{2B05}-\u{2B07}\u{2B1B}-\u{2B1C}\u{3297}\u{3299}\u{303D}\u{00A9}\u{00AE}\u{2122}\u{23F3}\u{24C2}\u{23E9}-\u{23EF}\u{25B6}\u{23F8}-\u{23FA}\u{200D}\u{2640}-\u{2642}\u{2695}\u{26F9}\u{270A}-\u{270D}\u{1F385}\u{1F3C2}-\u{1F3C4}\u{1F3C7}\u{1F3CA}-\u{1F3CC}\u{1F3FB}-\u{1F3FF}\u{1F90D}-\u{1F93A}\u{1F93C}-\u{1F945}\u{1F947}-\u{1F971}\u{1F973}-\u{1F976}\u{1F97A}-\u{1F9A2}\u{1F9A5}-\u{1F9AA}\u{1F9AE}-\u{1F9CA}\u{1F9CD}-\u{1F9FF}\u{1FA70}-\u{1FA73}\u{1FA78}-\u{1FA7A}\u{1FA80}-\u{1FA82}\u{1FA90}-\u{1FA95}]+$/u;
-        
+        const emojiRegex =
+          /^[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E0}-\u{1F1FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F900}-\u{1F9FF}\u{1F018}-\u{1F0F5}\u{1F191}-\u{1F251}\u{1F004}\u{1F0CF}\u{1F170}-\u{1F171}\u{1F17E}-\u{1F17F}\u{1F18E}\u{3030}\u{2B50}\u{2B55}\u{2934}-\u{2935}\u{2B05}-\u{2B07}\u{2B1B}-\u{2B1C}\u{3297}\u{3299}\u{303D}\u{00A9}\u{00AE}\u{2122}\u{23F3}\u{24C2}\u{23E9}-\u{23EF}\u{25B6}\u{23F8}-\u{23FA}\u{200D}\u{2640}-\u{2642}\u{2695}\u{26F9}\u{270A}-\u{270D}\u{1F385}\u{1F3C2}-\u{1F3C4}\u{1F3C7}\u{1F3CA}-\u{1F3CC}\u{1F3FB}-\u{1F3FF}\u{1F90D}-\u{1F93A}\u{1F93C}-\u{1F945}\u{1F947}-\u{1F971}\u{1F973}-\u{1F976}\u{1F97A}-\u{1F9A2}\u{1F9A5}-\u{1F9AA}\u{1F9AE}-\u{1F9CA}\u{1F9CD}-\u{1F9FF}\u{1FA70}-\u{1FA73}\u{1FA78}-\u{1FA7A}\u{1FA80}-\u{1FA82}\u{1FA90}-\u{1FA95}]+$/u;
+
         return emojiRegex.test(cleanText) && cleanText.length <= 10; // Max 10 emojis to be considered "emoji only"
       }
 
       // Enhanced displayMessage function to filter out system messages
       function displayMessage(data) {
         // Skip system connection messages
-        if (data.message === "__GET_RECENT_MESSAGES__" || data.message === "__USER_CONNECT__") {
+        if (
+          data.message === "__GET_RECENT_MESSAGES__" ||
+          data.message === "__USER_CONNECT__"
+        ) {
           return;
         }
 
@@ -1642,10 +1713,12 @@
         if (!data.channel || data.channel === currentChannel) {
           const messageElement = document.createElement("div");
           messageElement.className = "message";
-          
+
           // Generate unique message ID
-          const messageId = `msg_${data.channel}_${new Date(data.timestamp).getTime()}`;
-          messageElement.setAttribute('data-message-id', messageId);
+          const messageId = `msg_${data.channel}_${new Date(
+            data.timestamp
+          ).getTime()}`;
+          messageElement.setAttribute("data-message-id", messageId);
 
           const timestamp = new Date(data.timestamp);
           const timeString = timestamp.toLocaleTimeString("tr-TR", {
@@ -1661,48 +1734,68 @@
           seenByMap[msgKey] = data.seenBy || [];
 
           let messageContent = "";
-          
+
           // Reply content
           let replyContent = "";
           if (data.replyTo) {
             replyContent = `
               <div class="message-reply">
-                <div class="reply-author">${escapeHtml(data.replyTo.username)}</div>
-                <div class="reply-text">${escapeHtml(data.replyTo.message)}</div>
+                <div class="reply-author">${escapeHtml(
+                  data.replyTo.username
+                )}</div>
+                <div class="reply-text">${escapeHtml(
+                  data.replyTo.message
+                )}</div>
               </div>
             `;
           }
 
           // Handle numerology messages
           if (data.type === "numerology" && data.numerologyData) {
-            console.log('Displaying numerology message:', data);
-            
-            let numerologyContent = '';
-            
+            console.log("Displaying numerology message:", data);
+
+            let numerologyContent = "";
+
             // Check if we have the new format
             if (data.numerologyData.numerology_report) {
               const report = data.numerologyData.numerology_report;
-              const aiText = data.numerologyData.ai_interpretation || 'AI yorumu mevcut değil.';
-              
+              const aiText =
+                data.numerologyData.ai_interpretation ||
+                "AI yorumu mevcut değil.";
+
               // Get color class for aura color
               const auraColorClass = getColorClass(report.aura_color.number);
               const auraColorText = report.aura_color.interpretation;
-              
+
               numerologyContent = `
                 <div class="api-response">
-                  <h4>🔮 ${data.numerologyData.request_data.full_name} için Numeroloji Analizi</h4>
+                  <h4>🔮 ${
+                    data.numerologyData.request_data.full_name
+                  } için Numeroloji Analizi</h4>
                   <div class="result-item">
-                    <div class="result-number">Yaşam Yolu Sayısı: ${report.life_path_number.number}</div>
-                    <div class="result-text">${escapeHtml(report.life_path_number.interpretation)}</div>
+                    <div class="result-number">Yaşam Yolu Sayısı: ${
+                      report.life_path_number.number
+                    }</div>
+                    <div class="result-text">${escapeHtml(
+                      report.life_path_number.interpretation
+                    )}</div>
                   </div>
                   <div class="result-item">
-                    <div class="result-number">İsim Sayısı: ${report.name_number.number}</div>
-                    <div class="result-text">${escapeHtml(report.name_number.interpretation)}</div>
+                    <div class="result-number">İsim Sayısı: ${
+                      report.name_number.number
+                    }</div>
+                    <div class="result-text">${escapeHtml(
+                      report.name_number.interpretation
+                    )}</div>
                   </div>
                   <div class="result-item">
-                    <div class="result-number">Aura Rengi: ${report.aura_color.number}</div>
+                    <div class="result-number">Aura Rengi: ${
+                      report.aura_color.number
+                    }</div>
                     <div class="result-text">
-                      <span class="aura-color-text ${auraColorClass}">${escapeHtml(auraColorText)}</span>
+                      <span class="aura-color-text ${auraColorClass}">${escapeHtml(
+                auraColorText
+              )}</span>
                     </div>
                   </div>
                   <div class="result-item">
@@ -1727,28 +1820,39 @@
               <div class="message-avatar">🔮</div>
               <div class="message-content">
                 <div class="message-header">
-                  <span class="message-author">${escapeHtml(data.username)}</span>
+                  <span class="message-author">${escapeHtml(
+                    data.username
+                  )}</span>
                   <span class="message-timestamp">${timeString}</span>
                 </div>
                 ${replyContent}
                 ${numerologyContent}
                 <div class="seen-info" data-msgkey="${msgKey}"></div>
                 <div class="message-actions">
-                  <button class="reply-btn" onclick="startReply('${messageId}', '${escapeHtml(data.username)}', 'Numeroloji analizi', 'numerology')">Yanıtla</button>
+                  <button class="reply-btn" onclick="startReply('${messageId}', '${escapeHtml(
+              data.username
+            )}', 'Numeroloji analizi', 'numerology')">Yanıtla</button>
                 </div>
               </div>
             `;
-          }
-          else if (data.type === "file" || data.type === "image") {
+          } else if (data.type === "file" || data.type === "image") {
             let fileContent = "";
 
             if (data.type === "image") {
               fileContent = `
                 <div class="file-message">
-                  <img src="${data.fileUrl}" alt="${data.fileName}" class="file-preview" onclick="window.open('${data.fileUrl}', '_blank')">
+                  <img src="${data.fileUrl}" alt="${
+                data.fileName
+              }" class="file-preview" onclick="window.open('${
+                data.fileUrl
+              }', '_blank')">
                   <div class="file-info">
                     <span class="file-icon">🖼️</span>
-                    <a href="${data.fileUrl}" target="_blank" class="file-download">${data.fileName}</a>
+                    <a href="${
+                      data.fileUrl
+                    }" target="_blank" class="file-download">${
+                data.fileName
+              }</a>
                     <span>(${formatFileSize(data.fileSize)})</span>
                   </div>
                 </div>
@@ -1759,7 +1863,11 @@
                 <div class="file-message">
                   <div class="file-info">
                     <span class="file-icon">${fileIcon}</span>
-                    <a href="${data.fileUrl}" target="_blank" class="file-download">${data.fileName}</a>
+                    <a href="${
+                      data.fileUrl
+                    }" target="_blank" class="file-download">${
+                data.fileName
+              }</a>
                     <span>(${formatFileSize(data.fileSize)})</span>
                   </div>
                 </div>
@@ -1767,10 +1875,14 @@
             }
 
             messageContent = `
-              <div class="message-avatar">${data.username.charAt(0).toUpperCase()}</div>
+              <div class="message-avatar">${data.username
+                .charAt(0)
+                .toUpperCase()}</div>
               <div class="message-content">
                 <div class="message-header">
-                  <span class="message-author">${escapeHtml(data.username)}</span>
+                  <span class="message-author">${escapeHtml(
+                    data.username
+                  )}</span>
                   <span class="message-timestamp">${timeString}</span>
                 </div>
                 ${replyContent}
@@ -1778,23 +1890,37 @@
                 ${fileContent}
                 <div class="seen-info" data-msgkey="${msgKey}"></div>
                 <div class="message-actions">
-                  <button class="reply-btn" onclick="startReply('${messageId}', '${escapeHtml(data.username)}', '${escapeHtml(data.message)}', '${data.type || 'text'}')">Yanıtla</button>
+                  <button class="reply-btn" onclick="startReply('${messageId}', '${escapeHtml(
+              data.username
+            )}', '${escapeHtml(data.message)}', '${
+              data.type || "text"
+            }')">Yanıtla</button>
                 </div>
               </div>
             `;
           } else {
             messageContent = `
-              <div class="message-avatar">${data.username.charAt(0).toUpperCase()}</div>
-              <div class="message-content ${isEmojiOnly(data.message) ? 'emoji-only-message' : ''}">
+              <div class="message-avatar">${data.username
+                .charAt(0)
+                .toUpperCase()}</div>
+              <div class="message-content ${
+                isEmojiOnly(data.message) ? "emoji-only-message" : ""
+              }">
                 <div class="message-header">
-                  <span class="message-author">${escapeHtml(data.username)}</span>
+                  <span class="message-author">${escapeHtml(
+                    data.username
+                  )}</span>
                   <span class="message-timestamp">${timeString}</span>
                 </div>
                 ${replyContent}
                 <div class="message-text">${escapeHtml(data.message)}</div>
                 <div class="seen-info" data-msgkey="${msgKey}"></div>
                 <div class="message-actions">
-                  <button class="reply-btn" onclick="startReply('${messageId}', '${escapeHtml(data.username)}', '${escapeHtml(data.message)}', '${data.type || 'text'}')">Yanıtla</button>
+                  <button class="reply-btn" onclick="startReply('${messageId}', '${escapeHtml(
+              data.username
+            )}', '${escapeHtml(data.message)}', '${
+              data.type || "text"
+            }')">Yanıtla</button>
                 </div>
               </div>
             `;
@@ -1832,20 +1958,25 @@
           messageId: messageId,
           username: author,
           message: message,
-          type: type
+          type: type,
         };
-        
+
         showReplyPreview();
         messageInput.focus();
       }
 
       function showReplyPreview() {
         if (!replyingTo) return;
-        
-        const displayMessage = replyingTo.type === 'file' || replyingTo.type === 'image' 
-          ? (replyingTo.type === 'image' ? '📷 Resim' : '📎 Dosya')
-          : replyingTo.type === 'numerology' ? '🔮 Numeroloji analizi' : replyingTo.message;
-          
+
+        const displayMessage =
+          replyingTo.type === "file" || replyingTo.type === "image"
+            ? replyingTo.type === "image"
+              ? "📷 Resim"
+              : "📎 Dosya"
+            : replyingTo.type === "numerology"
+            ? "🔮 Numeroloji analizi"
+            : replyingTo.message;
+
         replyInputContainer.innerHTML = `
           <div class="reply-preview">
             <div class="reply-author">${escapeHtml(replyingTo.username)}</div>
@@ -1853,15 +1984,15 @@
             <button class="reply-cancel" onclick="cancelReply()">&times;</button>
           </div>
         `;
-        
-        replyInputContainer.classList.add('show');
+
+        replyInputContainer.classList.add("show");
         messageInput.placeholder = `${replyingTo.username} kullanıcısına yanıt veriyorsunuz...`;
       }
 
       function cancelReply() {
         replyingTo = null;
-        replyInputContainer.classList.remove('show');
-        replyInputContainer.innerHTML = '';
+        replyInputContainer.classList.remove("show");
+        replyInputContainer.innerHTML = "";
         messageInput.placeholder = `#${currentChannel} kanalına mesaj gönder`;
       }
 
@@ -1877,21 +2008,21 @@
               channel: currentChannel,
               type: "text",
             };
-            
+
             // Add reply information if replying
             if (replyingTo) {
               messageData.replyTo = {
                 messageId: replyingTo.messageId,
                 username: replyingTo.username,
                 message: replyingTo.message,
-                type: replyingTo.type
+                type: replyingTo.type,
               };
             }
 
             console.log("Mesaj gönderiliyor:", messageData);
             ws.send(JSON.stringify(messageData));
             messageInput.value = "";
-            
+
             // Clear reply state
             if (replyingTo) {
               cancelReply();
@@ -2176,7 +2307,6 @@
         }
 
         if (isSoundEnabled) {
-
           playNotificationSound();
         } else {
           Swal.fire({
@@ -2613,8 +2743,6 @@
             if (ws) {
               ws.close();
             }
-            // Clear saved username
-            localStorage.removeItem("chatliyo_username");
             // Reset variables
             username = "";
             // Show login modal and hide app
@@ -2646,39 +2774,628 @@
       window.requestRecentMessages = requestRecentMessages;
 
       // Emoji functionality
-      const emojiButton = document.getElementById('emojiButton');
-      const emojiPicker = document.getElementById('emojiPicker');
-      const emojiPickerClose = document.getElementById('emojiPickerClose');
-      const emojiGrid = document.getElementById('emojiGrid');
-      const emojiCategories = document.querySelectorAll('.emoji-category');
+      const emojiButton = document.getElementById("emojiButton");
+      const emojiPicker = document.getElementById("emojiPicker");
+      const emojiPickerClose = document.getElementById("emojiPickerClose");
+      const emojiGrid = document.getElementById("emojiGrid");
+      const emojiCategories = document.querySelectorAll(".emoji-category");
 
       // Emoji categories with popular emojis
       const emojis = {
-        smileys: ['😀', '😃', '😄', '😁', '😅', '😂', '🤣', '😊', '😇', '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚', '😋', '😛', '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🥸', '🤩', '🥳', '😏', '😒', '😞', '😔', '😟', '😕', '🙁', '☹️', '😣', '😖', '😫', '😩', '🥺', '😢', '😭', '😤', '😠', '😡', '🤬', '🤯', '😳', '🥵', '🥶', '😱', '😨', '😰', '😥', '😓'],
-        people: ['👋', '🤚', '🖐️', '✋', '🖖', '👌', '🤌', '🤏', '✌️', '🤞', '🤟', '🤘', '🤙', '👈', '👉', '👆', '🖕', '👇', '☝️', '👍', '👎', '👊', '✊', '🤛', '🤜', '👏', '🙌', '👐', '🤲', '🤝', '🙏', '✍️', '💅', '🤳', '💪', '🦾', '🦵', '🦿', '🦷', '🦴', '👀', '👁️', '👅', '👄', '👶', '🧒', '👦', '👧', '🧑', '👱', '👨', '🧔', '👩', '🧓', '👴', '👵', '🙍', '🙎', '🙅', '🙆', '💁', '🙋', '🧏', '🙇', '🤦', '🤷'],
-        nature: ['🌱', '🌿', '🍀', '🍃', '🌳', '🌲', '🌴', '🌵', '🌸', '🌺', '🌻', '🌹', '🥀', '🌷', '💐', '🌼', '🌙', '🌛', '🌜', '🌚', '🌕', '🌖', '🌗', '🌘', '🌑', '🌒', '🌓', '🌔', '🌎', '🌍', '🌏', '💫', '⭐', '🌟', '✨', '⚡', '☄️', '💥', '🔥', '🌪️', '🌈', '☀️', '🌤️', '⛅', '🌦️', '🌧️', '⛈️', '🌩️', '🌨️', '❄️', '☃️', '⛄', '🌬️', '💨', '💧', '💦', '☔', '🌊'],
-        food: ['🍏', '🍎', '🍐', '🍊', '🍋', '🍌', '🍉', '🍇', '🍓', '🫐', '🍈', '🍒', '🍑', '🥭', '🍍', '🥥', '🥝', '🍅', '🍆', '🥑', '🥦', '🥬', '🥒', '🌶️', '🫑', '🌽', '🥕', '🫒', '🧄', '🧅', '🥔', '🍠', '🥐', '🥖', '🍞', '🥨', '🥯', '🍳', '🧀', '🥓', '🥞', '🧇', '🍗', '🍖', '🌭', '🍔', '🍟', '🍕', '🥪', '🥙', '🌮', '🌯', '🫔', '🥗', '🥘', '🫕', '🍝', '🍜', '🍲', '🍛', '🍣', '🍱', '🥟', '🦪', '🍤', '🍙', '🍚', '🍘', '🍥', '🥠', '🥮', '🍢', '🍡', '🍧', '🍨', '🍦', '🥧', '🧁', '🍰', '🎂', '🍮', '🍭', '🍬', '🍫', '🍿', '🍩', '🍪', '🌰', '🥜', '🍯'],
-        activities: ['⚽', '🏀', '🏈', '⚾', '🥎', '🎾', '🏐', '🏉', '🥏', '🎱', '🪀', '🏓', '🏸', '🏒', '🏑', '🥍', '🏏', '🪃', '🥅', '⛳', '🪁', '🏹', '🎣', '🤿', '🥊', '🥋', '🎽', '🛹', '🛼', '🛷', '⛸️', '🥌', '🎿', '⛷️', '🏂', '🪂', '🏋️', '🤼', '🤸', '⛹️', '🤺', '🤾', '🏌️', '🏇', '🧘', '🏄', '🏊', '🤽', '🚣', '🧗', '🚵', '🚴', '🏆', '🥇', '🥈', '🥉', '🏅', '🎖️', '🏵️', '🎗️', '🎫', '🎟️', '🎪', '🤹', '🎭', '🩰', '🎨', '🎬', '🎤', '🎧', '🎼', '🎵', '🎶', '🥁', '🪘', '🎹', '🎺', '🎷', '🎸', '🪕', '🎻'],
-        travel: ['🚗', '🚕', '🚙', '🚌', '🚎', '🏎️', '🚓', '🚑', '🚒', '🚐', '🛻', '🚚', '🚛', '🚜', '🏍️', '🛵', '🚲', '🛴', '🛹', '🚁', '🛸', '✈️', '🛫', '🛬', '🪂', '💺', '🚀', '🛰️', '🚊', '🚝', '🚄', '🚅', '🚈', '🚞', '🚋', '🚃', '🚟', '🚠', '🚡', '⛴️', '🛥️', '🚤', '⛵', '🛶', '🚢', '🏰', '🏯', '🏟️', '🎡', '🎢', '🎠', '⛲', '⛱️', '🏖️', '🏝️', '🏜️', '🌋', '⛰️', '🏔️', '🗻', '🏕️', '⛺', '🛤️', '🛣️', '🗺️', '🗾', '🏞️', '🎑', '🏟️', '🏛️', '🏗️', '🧱'],
-        objects: ['⌚', '📱', '📲', '💻', '⌨️', '🖥️', '🖨️', '🖱️', '🖲️', '🕹️', '🗜️', '💽', '💾', '💿', '📀', '📼', '📷', '📸', '📹', '🎥', '📽️', '🎞️', '📞', '☎️', '📟', '📠', '📺', '📻', '🎙️', '🎚️', '🎛️', '🧭', '⏱️', '⏲️', '⏰', '🕰️', '⌛', '⏳', '📡', '🔋', '🔌', '💡', '🔦', '🕯️', '🪔', '🧯', '🛢️', '💸', '💵', '💴', '💶', '💷', '🪙', '💰', '💳', '💎', '⚖️', '🪜', '🧰', '🔧', '🔨', '⚒️', '🛠️', '⛏️', '🔩', '⚙️', '🪚', '🧲'],
-        symbols: ['❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '💔', '❣️', '💕', '💞', '💓', '💗', '💖', '💘', '💝', '💟', '☮️', '✝️', '☪️', '🕉️', '☸️', '✡️', '🔯', '🕎', '☯️', '☦️', '🛐', '⛎', '♈', '♉', '♊', '♋', '♌', '♍', '♎', '♏', '♐', '♑', '♒', '♓', '🆔', '⚛️', '🉑', '☢️', '☣️', '📴', '📳', '🈶', '🈚', '🈸', '🈺', '🈷️', '✴️', '🆚', '💮', '🉐', '㊙️', '㊗️', '🈴', '🈵', '🈹', '🈲', '🅰️', '🅱️', '🆎', '🆑', '🅾️', '🆘', '❌', '⭕', '🛑', '⛔', '📛', '🚫', '💯', '💢', '♨️', '🚷', '🚯', '🚳', '🚱', '🔞', '📵', '🚭']
+        smileys: [
+          "😀",
+          "😃",
+          "😄",
+          "😁",
+          "😅",
+          "😂",
+          "🤣",
+          "😊",
+          "😇",
+          "🙂",
+          "🙃",
+          "😉",
+          "😌",
+          "😍",
+          "🥰",
+          "😘",
+          "😗",
+          "😙",
+          "😚",
+          "😋",
+          "😛",
+          "😝",
+          "😜",
+          "🤪",
+          "🤨",
+          "🧐",
+          "🤓",
+          "😎",
+          "🥸",
+          "🤩",
+          "🥳",
+          "😏",
+          "😒",
+          "😞",
+          "😔",
+          "😟",
+          "😕",
+          "🙁",
+          "☹️",
+          "😣",
+          "😖",
+          "😫",
+          "😩",
+          "🥺",
+          "😢",
+          "😭",
+          "😤",
+          "😠",
+          "😡",
+          "🤬",
+          "🤯",
+          "😳",
+          "🥵",
+          "🥶",
+          "😱",
+          "😨",
+          "😰",
+          "😥",
+          "😓",
+        ],
+        people: [
+          "👋",
+          "🤚",
+          "🖐️",
+          "✋",
+          "🖖",
+          "👌",
+          "🤌",
+          "🤏",
+          "✌️",
+          "🤞",
+          "🤟",
+          "🤘",
+          "🤙",
+          "👈",
+          "👉",
+          "👆",
+          "🖕",
+          "👇",
+          "☝️",
+          "👍",
+          "👎",
+          "👊",
+          "✊",
+          "🤛",
+          "🤜",
+          "👏",
+          "🙌",
+          "👐",
+          "🤲",
+          "🤝",
+          "🙏",
+          "✍️",
+          "💅",
+          "🤳",
+          "💪",
+          "🦾",
+          "🦵",
+          "🦿",
+          "🦷",
+          "🦴",
+          "👀",
+          "👁️",
+          "👅",
+          "👄",
+          "👶",
+          "🧒",
+          "👦",
+          "👧",
+          "🧑",
+          "👱",
+          "👨",
+          "🧔",
+          "👩",
+          "🧓",
+          "👴",
+          "👵",
+          "🙍",
+          "🙎",
+          "🙅",
+          "🙆",
+          "💁",
+          "🙋",
+          "🧏",
+          "🙇",
+          "🤦",
+          "🤷",
+        ],
+        nature: [
+          "🌱",
+          "🌿",
+          "🍀",
+          "🍃",
+          "🌳",
+          "🌲",
+          "🌴",
+          "🌵",
+          "🌸",
+          "🌺",
+          "🌻",
+          "🌹",
+          "🥀",
+          "🌷",
+          "💐",
+          "🌼",
+          "🌙",
+          "🌛",
+          "🌜",
+          "🌚",
+          "🌕",
+          "🌖",
+          "🌗",
+          "🌘",
+          "🌑",
+          "🌒",
+          "🌓",
+          "🌔",
+          "🌎",
+          "🌍",
+          "🌏",
+          "💫",
+          "⭐",
+          "🌟",
+          "✨",
+          "⚡",
+          "☄️",
+          "💥",
+          "🔥",
+          "🌪️",
+          "🌈",
+          "☀️",
+          "🌤️",
+          "⛅",
+          "🌦️",
+          "🌧️",
+          "⛈️",
+          "🌩️",
+          "🌨️",
+          "❄️",
+          "☃️",
+          "⛄",
+          "🌬️",
+          "💨",
+          "💧",
+          "💦",
+          "☔",
+          "🌊",
+        ],
+        food: [
+          "🍏",
+          "🍎",
+          "🍐",
+          "🍊",
+          "🍋",
+          "🍌",
+          "🍉",
+          "🍇",
+          "🍓",
+          "🫐",
+          "🍈",
+          "🍒",
+          "🍑",
+          "🥭",
+          "🍍",
+          "🥥",
+          "🥝",
+          "🍅",
+          "🍆",
+          "🥑",
+          "🥦",
+          "🥬",
+          "🥒",
+          "🌶️",
+          "🫑",
+          "🌽",
+          "🥕",
+          "🫒",
+          "🧄",
+          "🧅",
+          "🥔",
+          "🍠",
+          "🥐",
+          "🥖",
+          "🍞",
+          "🥨",
+          "🥯",
+          "🍳",
+          "🧀",
+          "🥓",
+          "🥞",
+          "🧇",
+          "🍗",
+          "🍖",
+          "🌭",
+          "🍔",
+          "🍟",
+          "🍕",
+          "🥪",
+          "🥙",
+          "🌮",
+          "🌯",
+          "🫔",
+          "🥗",
+          "🥘",
+          "🫕",
+          "🍝",
+          "🍜",
+          "🍲",
+          "🍛",
+          "🍣",
+          "🍱",
+          "🥟",
+          "🦪",
+          "🍤",
+          "🍙",
+          "🍚",
+          "🍘",
+          "🍥",
+          "🥠",
+          "🥮",
+          "🍢",
+          "🍡",
+          "🍧",
+          "🍨",
+          "🍦",
+          "🥧",
+          "🧁",
+          "🍰",
+          "🎂",
+          "🍮",
+          "🍭",
+          "🍬",
+          "🍫",
+          "🍿",
+          "🍩",
+          "🍪",
+          "🌰",
+          "🥜",
+          "🍯",
+        ],
+        activities: [
+          "⚽",
+          "🏀",
+          "🏈",
+          "⚾",
+          "🥎",
+          "🎾",
+          "🏐",
+          "🏉",
+          "🥏",
+          "🎱",
+          "🪀",
+          "🏓",
+          "🏸",
+          "🏒",
+          "🏑",
+          "🥍",
+          "🏏",
+          "🪃",
+          "🥅",
+          "⛳",
+          "🪁",
+          "🏹",
+          "🎣",
+          "🤿",
+          "🥊",
+          "🥋",
+          "🎽",
+          "🛹",
+          "🛼",
+          "🛷",
+          "⛸️",
+          "🥌",
+          "🎿",
+          "⛷️",
+          "🏂",
+          "🪂",
+          "🏋️",
+          "🤼",
+          "🤸",
+          "⛹️",
+          "🤺",
+          "🤾",
+          "🏌️",
+          "🏇",
+          "🧘",
+          "🏄",
+          "🏊",
+          "🤽",
+          "🚣",
+          "🧗",
+          "🚵",
+          "🚴",
+          "🏆",
+          "🥇",
+          "🥈",
+          "🥉",
+          "🏅",
+          "🎖️",
+          "🏵️",
+          "🎗️",
+          "🎫",
+          "🎟️",
+          "🎪",
+          "🤹",
+          "🎭",
+          "🩰",
+          "🎨",
+          "🎬",
+          "🎤",
+          "🎧",
+          "🎼",
+          "🎵",
+          "🎶",
+          "🥁",
+          "🪘",
+          "🎹",
+          "🎺",
+          "🎷",
+          "🎸",
+          "🪕",
+          "🎻",
+        ],
+        travel: [
+          "🚗",
+          "🚕",
+          "🚙",
+          "🚌",
+          "🚎",
+          "🏎️",
+          "🚓",
+          "🚑",
+          "🚒",
+          "🚐",
+          "🛻",
+          "🚚",
+          "🚛",
+          "🚜",
+          "🏍️",
+          "🛵",
+          "🚲",
+          "🛴",
+          "🛹",
+          "🚁",
+          "🛸",
+          "✈️",
+          "🛫",
+          "🛬",
+          "🪂",
+          "💺",
+          "🚀",
+          "🛰️",
+          "🚊",
+          "🚝",
+          "🚄",
+          "🚅",
+          "🚈",
+          "🚞",
+          "🚋",
+          "🚃",
+          "🚟",
+          "🚠",
+          "🚡",
+          "⛴️",
+          "🛥️",
+          "🚤",
+          "⛵",
+          "🛶",
+          "🚢",
+          "🏰",
+          "🏯",
+          "🏟️",
+          "🎡",
+          "🎢",
+          "🎠",
+          "⛲",
+          "⛱️",
+          "🏖️",
+          "🏝️",
+          "🏜️",
+          "🌋",
+          "⛰️",
+          "🏔️",
+          "🗻",
+          "🏕️",
+          "⛺",
+          "🛤️",
+          "🛣️",
+          "🗺️",
+          "🗾",
+          "🏞️",
+          "🎑",
+          "🏟️",
+          "🏛️",
+          "🏗️",
+          "🧱",
+        ],
+        objects: [
+          "⌚",
+          "📱",
+          "📲",
+          "💻",
+          "⌨️",
+          "🖥️",
+          "🖨️",
+          "🖱️",
+          "🖲️",
+          "🕹️",
+          "🗜️",
+          "💽",
+          "💾",
+          "💿",
+          "📀",
+          "📼",
+          "📷",
+          "📸",
+          "📹",
+          "🎥",
+          "📽️",
+          "🎞️",
+          "📞",
+          "☎️",
+          "📟",
+          "📠",
+          "📺",
+          "📻",
+          "🎙️",
+          "🎚️",
+          "🎛️",
+          "🧭",
+          "⏱️",
+          "⏲️",
+          "⏰",
+          "🕰️",
+          "⌛",
+          "⏳",
+          "📡",
+          "🔋",
+          "🔌",
+          "💡",
+          "🔦",
+          "🕯️",
+          "🪔",
+          "🧯",
+          "🛢️",
+          "💸",
+          "💵",
+          "💴",
+          "💶",
+          "💷",
+          "🪙",
+          "💰",
+          "💳",
+          "💎",
+          "⚖️",
+          "🪜",
+          "🧰",
+          "🔧",
+          "🔨",
+          "⚒️",
+          "🛠️",
+          "⛏️",
+          "🔩",
+          "⚙️",
+          "🪚",
+          "🧲",
+        ],
+        symbols: [
+          "❤️",
+          "🧡",
+          "💛",
+          "💚",
+          "💙",
+          "💜",
+          "🖤",
+          "🤍",
+          "🤎",
+          "💔",
+          "❣️",
+          "💕",
+          "💞",
+          "💓",
+          "💗",
+          "💖",
+          "💘",
+          "💝",
+          "💟",
+          "☮️",
+          "✝️",
+          "☪️",
+          "🕉️",
+          "☸️",
+          "✡️",
+          "🔯",
+          "🕎",
+          "☯️",
+          "☦️",
+          "🛐",
+          "⛎",
+          "♈",
+          "♉",
+          "♊",
+          "♋",
+          "♌",
+          "♍",
+          "♎",
+          "♏",
+          "♐",
+          "♑",
+          "♒",
+          "♓",
+          "🆔",
+          "⚛️",
+          "🉑",
+          "☢️",
+          "☣️",
+          "📴",
+          "📳",
+          "🈶",
+          "🈚",
+          "🈸",
+          "🈺",
+          "🈷️",
+          "✴️",
+          "🆚",
+          "💮",
+          "🉐",
+          "㊙️",
+          "㊗️",
+          "🈴",
+          "🈵",
+          "🈹",
+          "🈲",
+          "🅰️",
+          "🅱️",
+          "🆎",
+          "🆑",
+          "🅾️",
+          "🆘",
+          "❌",
+          "⭕",
+          "🛑",
+          "⛔",
+          "📛",
+          "🚫",
+          "💯",
+          "💢",
+          "♨️",
+          "🚷",
+          "🚯",
+          "🚳",
+          "🚱",
+          "🔞",
+          "📵",
+          "🚭",
+        ],
       };
 
-      let currentEmojiCategory = 'smileys';
+      let currentEmojiCategory = "smileys";
 
       // Initialize emoji picker
       function initializeEmojiPicker() {
         loadEmojis(currentEmojiCategory);
-        
+
         // Category click handlers
-        emojiCategories.forEach(category => {
-          category.addEventListener('click', () => {
+        emojiCategories.forEach((category) => {
+          category.addEventListener("click", () => {
             const categoryName = category.dataset.category;
-            
+
             // Update active category
-            emojiCategories.forEach(cat => cat.classList.remove('active'));
-            category.classList.add('active');
-            
+            emojiCategories.forEach((cat) => cat.classList.remove("active"));
+            category.classList.add("active");
+
             // Load emojis for category
             currentEmojiCategory = categoryName;
             loadEmojis(categoryName);
@@ -2689,13 +3406,13 @@
       // Load emojis for category
       function loadEmojis(category) {
         const categoryEmojis = emojis[category] || emojis.smileys;
-        emojiGrid.innerHTML = '';
-        
-        categoryEmojis.forEach(emoji => {
-          const emojiElement = document.createElement('div');
-          emojiElement.className = 'emoji-item';
+        emojiGrid.innerHTML = "";
+
+        categoryEmojis.forEach((emoji) => {
+          const emojiElement = document.createElement("div");
+          emojiElement.className = "emoji-item";
           emojiElement.textContent = emoji;
-          emojiElement.addEventListener('click', () => {
+          emojiElement.addEventListener("click", () => {
             insertEmoji(emoji);
           });
           emojiGrid.appendChild(emojiElement);
@@ -2706,46 +3423,52 @@
       function insertEmoji(emoji) {
         const currentValue = messageInput.value;
         const cursorPosition = messageInput.selectionStart;
-        
-        const newValue = currentValue.slice(0, cursorPosition) + emoji + currentValue.slice(cursorPosition);
+
+        const newValue =
+          currentValue.slice(0, cursorPosition) +
+          emoji +
+          currentValue.slice(cursorPosition);
         messageInput.value = newValue;
-        
+
         // Set cursor position after emoji
         const newCursorPosition = cursorPosition + emoji.length;
         messageInput.setSelectionRange(newCursorPosition, newCursorPosition);
-        
+
         // Focus back to input
         messageInput.focus();
-        
+
         // Hide emoji picker
         hideEmojiPicker();
       }
 
       // Show emoji picker
       function showEmojiPicker() {
-        emojiPicker.classList.add('show');
-        
+        emojiPicker.classList.add("show");
+
         // Close on click outside
-        document.addEventListener('click', handleEmojiPickerOutsideClick);
+        document.addEventListener("click", handleEmojiPickerOutsideClick);
       }
 
       // Hide emoji picker
       function hideEmojiPicker() {
-        emojiPicker.classList.remove('show');
-        document.removeEventListener('click', handleEmojiPickerOutsideClick);
+        emojiPicker.classList.remove("show");
+        document.removeEventListener("click", handleEmojiPickerOutsideClick);
       }
 
       // Handle click outside emoji picker
       function handleEmojiPickerOutsideClick(event) {
-        if (!emojiPicker.contains(event.target) && !emojiButton.contains(event.target)) {
+        if (
+          !emojiPicker.contains(event.target) &&
+          !emojiButton.contains(event.target)
+        ) {
           hideEmojiPicker();
         }
       }
 
       // Emoji button click
-      emojiButton.addEventListener('click', (e) => {
+      emojiButton.addEventListener("click", (e) => {
         e.stopPropagation();
-        if (emojiPicker.classList.contains('show')) {
+        if (emojiPicker.classList.contains("show")) {
           hideEmojiPicker();
         } else {
           showEmojiPicker();
@@ -2753,7 +3476,7 @@
       });
 
       // Emoji picker close button
-      emojiPickerClose.addEventListener('click', hideEmojiPicker);
+      emojiPickerClose.addEventListener("click", hideEmojiPicker);
 
       // Initialize emoji picker when page loads
       initializeEmojiPicker();
@@ -2761,349 +3484,21 @@
       // Helper function to get color class based on number
       function getColorClass(number) {
         const colorMap = {
-          1: 'color-red',
-          2: 'color-orange', 
-          3: 'color-yellow',
-          4: 'color-green',
-          5: 'color-blue',
-          6: 'color-indigo',
-          7: 'color-purple',
-          8: 'color-pink',
-          9: 'color-bronze',
-          11: 'color-silver',
-          22: 'color-gold',
-          33: 'color-crystal'
+          1: "color-red",
+          2: "color-orange",
+          3: "color-yellow",
+          4: "color-green",
+          5: "color-blue",
+          6: "color-indigo",
+          7: "color-purple",
+          8: "color-pink",
+          9: "color-bronze",
+          11: "color-silver",
+          22: "color-gold",
+          33: "color-crystal",
         };
-        return colorMap[number] || 'color-crystal';
+        return colorMap[number] || "color-crystal";
       }
     </script>
   </body>
-</html>
-</html>
-            "rar",
-            "doc",
-            "docx",
-            "xls",
-            "xlsx",
-          ];
-
-          if (!validExtensions.includes(ext)) {
-            Swal.fire({
-              icon: "error",
-              title: "Desteklenmeyen Dosya Türü",
-              text: "Sadece resim, PDF, metin, ZIP ve Office dosyaları yükleyebilirsiniz.",
-              confirmButtonText: "Tamam",
-            });
-            return;
-          }
-        }
-
-        // Show upload confirmation
-        Swal.fire({
-          title: "Dosya Yükle",
-          text: `"${file.name}" dosyasını yüklemek istediğinize emin misiniz?`,
-          icon: "question",
-          showCancelButton: true,
-          confirmButtonText: "Evet, Yükle",
-          cancelButtonText: "İptal",
-        }).then((result) => {
-          if (result.isConfirmed) {
-            performFileUpload(file);
-          }
-        });
-      }
-
-      function performFileUpload(file) {
-        const formData = new FormData();
-        formData.append("file", file);
-        formData.append("username", username);
-        formData.append("channel", currentChannel);
-
-        // Show progress
-        uploadProgress.style.display = "block";
-        uploadProgressBar.style.width = "0%";
-
-        // Disable upload button during upload
-        uploadButton.disabled = true;
-        uploadButton.textContent = "⏳";
-
-        // Upload file
-        const xhr = new XMLHttpRequest();
-
-        xhr.upload.addEventListener("progress", (e) => {
-          if (e.lengthComputable) {
-            const percentComplete = (e.loaded / e.total) * 100;
-            uploadProgressBar.style.width = percentComplete + "%";
-          }
-        });
-
-        xhr.addEventListener("load", () => {
-          uploadProgress.style.display = "none";
-          fileUploadArea.classList.remove("show");
-          fileInput.value = "";
-          uploadButton.disabled = false;
-          uploadButton.textContent = "📎";
-
-          if (xhr.status === 200) {
-            try {
-              const response = JSON.parse(xhr.responseText);
-              Swal.fire({
-                icon: "success",
-                title: "Dosya Yüklendi",
-                text: `"${
-                  response.fileName
-                }" başarıyla paylaşıldı! (${formatFileSize(
-                  response.fileSize
-                )})`,
-                timer: 3000,
-                showConfirmButton: false,
-                toast: true,
-                position: "top-end",
-              });
-
-              console.log("Dosya sunucuda kaydedildi:", response.filePath);
-            } catch (e) {
-              console.error("Response parse hatası:", e);
-            }
-          } else {
-            Swal.fire({
-              icon: "error",
-              title: "Yükleme Hatası",
-              text: `Dosya yüklenirken bir hata oluştu. (${xhr.status})`,
-              confirmButtonText: "Tamam",
-            });
-          }
-        });
-
-        xhr.addEventListener("error", () => {
-          uploadProgress.style.display = "none";
-          uploadButton.disabled = false;
-          uploadButton.textContent = "📎";
-
-          Swal.fire({
-            icon: "error",
-            title: "Bağlantı Hatası",
-            text: "Dosya yüklenirken bağlantı hatası oluştu.",
-            confirmButtonText: "Tamam",
-          });
-        });
-
-        xhr.open("POST", "/upload");
-        xhr.send(formData);
-      }
-
-      // Update seen info in UI
-      function updateSeenInfo(msgKey) {
-        const seenBy = seenByMap[msgKey] || [];
-        const seenDivs = document.querySelectorAll(
-          `.seen-info[data-msgkey="${msgKey}"]`
-        );
-        seenDivs.forEach((div) => {
-          if (seenBy.length === 0) {
-            div.innerHTML = "";
-          } else {
-            div.innerHTML = `<span class="seen-checkmark">✓</span><span class="seen-users">${seenBy.join(
-              ", "
-            )}</span>`;
-          }
-        });
-      }
-
-      // Handle seen update from server
-      function updateSeenStatus(data) {
-        if (!data.channel || !data.timestamp || !data.username) return;
-        const ts = new Date(data.timestamp).getTime();
-        const msgKey = `${data.channel}_${ts}`;
-        if (!seenByMap[msgKey]) seenByMap[msgKey] = [];
-        if (!seenByMap[msgKey].includes(data.username)) {
-          seenByMap[msgKey].push(data.username);
-          updateSeenInfo(msgKey);
-        }
-      }
-
-      clearHistoryBtn.addEventListener("click", () => {
-        Swal.fire({
-          title: "Geçmişi Temizle",
-          text: `#${currentChannel} kanalının geçmişini temizlemek istediğinize emin misiniz?`,
-          icon: "warning",
-          showCancelButton: true,
-          confirmButtonText: "Evet, Temizle",
-          cancelButtonText: "İptal",
-          confirmButtonColor: "#dc3545",
-        }).then((result) => {
-          if (result.isConfirmed) {
-            fetch("/clear-history", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({ channel: currentChannel }),
-            })
-              .then((res) => {
-                if (res.ok) {
-                  messages.innerHTML = "";
-
-                  Swal.fire({
-                    icon: "success",
-                    title: "Başarılı!",
-                    text: "Geçmiş mesajlar temizlendi.",
-                    timer: 2000,
-                    showConfirmButton: false,
-                    toast: true,
-                    position: "top-end",
-                  });
-                } else {
-                  Swal.fire({
-                    icon: "error",
-                    title: "Hata!",
-                    text: "Geçmiş temizlenemedi.",
-                    timer: 2000,
-                    showConfirmButton: false,
-                    toast: true,
-                    position: "top-end",
-                  });
-                }
-              })
-              .catch(() => {
-                Swal.fire({
-                  icon: "error",
-                  title: "Hata!",
-                  text: "Sunucu hatası.",
-                  timer: 2000,
-                  showConfirmButton: false,
-                  toast: true,
-                  position: "top-end",
-                });
-              });
-          }
-        });
-      });
-
-      sendButton.addEventListener("click", sendMessage);
-      messageInput.addEventListener("keypress", (e) => {
-        if (e.key === "Enter") {
-          sendMessage();
-        }
-      });
-
-      usernameInput.focus();
-
-      function updateActiveUserCount(count) {
-        activeUsersCount.textContent = count;
-
-        // Update text based on count
-        const activeUsersElement = document.querySelector(
-          ".active-users span:last-child"
-        );
-        if (count === 1) {
-          activeUsersElement.textContent = "aktif kullanıcı";
-        } else {
-          activeUsersElement.textContent = "aktif kullanıcı";
-        }
-      }
-
-      // Add missing functions for proper message display
-      function addSystemMessage(message) {
-        const messageElement = document.createElement("div");
-        messageElement.className = "message system-message";
-
-        const timestamp = new Date();
-        const timeString = timestamp.toLocaleTimeString("tr-TR", {
-          hour: "2-digit",
-          minute: "2-digit",
-        });
-
-        messageElement.innerHTML = `
-                <div class="message-avatar">S</div>
-                <div class="message-content">
-                    <div class="message-header">
-                        <span class="message-author">Sistem</span>
-                        <span class="message-timestamp">${timeString}</span>
-                    </div>
-                    <div class="message-text">${escapeHtml(message)}</div>
-                </div>
-            `;
-
-        messages.appendChild(messageElement);
-        messages.scrollTop = messages.scrollHeight;
-      }
-
-      function escapeHtml(text) {
-        const div = document.createElement("div");
-        div.textContent = text;
-        return div.innerHTML;
-      }
-
-      function addNotification(channelName) {
-        if (!unreadCounts[channelName]) {
-          unreadCounts[channelName] = 0;
-        }
-        unreadCounts[channelName]++;
-
-        const badge = document.querySelector(
-          `.notification-badge[data-channel="${channelName}"]`
-        );
-        if (badge) {
-          badge.textContent = unreadCounts[channelName];
-          badge.classList.add("show");
-        }
-      }
-
-      function clearNotifications(channelName) {
-        unreadCounts[channelName] = 0;
-        const badge = document.querySelector(
-          `.notification-badge[data-channel="${channelName}"]`
-        );
-        if (badge) {
-          badge.classList.remove("show");
-          badge.textContent = "0";
-        }
-      }
-
-      // Çıkış yap butonu işlevi
-      const logoutBtn = document.getElementById("logoutBtn");
-      logoutBtn.addEventListener("click", () => {
-        Swal.fire({
-          title: "Çıkış Yap",
-          text: "Çıkış yapmak istediğinize emin misiniz?",
-          icon: "warning",
-          showCancelButton: true,
-          confirmButtonText: "Evet, çıkış yap",
-          cancelButtonText: "İptal",
-          confirmButtonColor: "#dc3545",
-        }).then((result) => {
-          if (result.isConfirmed) {
-            // Close WebSocket connection
-            if (ws) {
-              ws.close();
-            }
-            // Clear saved username
-            localStorage.removeItem("chatliyo_username");
-            // Reset variables
-            username = "";
-            // Show login modal and hide app
-            loginModal.style.display = "flex";
-            app.style.display = "none";
-            // Clear messages
-            messages.innerHTML = "";
-            // Focus username input
-            usernameInput.value = "";
-            usernameInput.focus();
-            // Show logout confirmation
-            Swal.fire({
-              icon: "success",
-              title: "Çıkış Yapıldı",
-              text: "Başarıyla çıkış yaptınız",
-              timer: 1500,
-              showConfirmButton: false,
-              toast: true,
-              position: "top-end",
-            });
-          }
-        });
-      });
-    </script>
-  </body>
-</html>
-</html>
 </html>
