@@ -1113,6 +1113,11 @@
             <span class="channel-name">numeroloji</span>
             <span class="notification-badge" data-channel="numeroloji">0</span>
           </div>
+          <div class="channel" data-channel="maya-astrolojisi">
+            <span class="channel-icon">#</span>
+            <span class="channel-name">maya-astrolojisi</span>
+            <span class="notification-badge" data-channel="maya-astrolojisi">0</span>
+          </div>
         </div>
 
         <div class="user-panel">
@@ -1292,6 +1297,24 @@
             Analiz Et
           </button>
         </div>
+
+        <!-- Maya Astrology form -->
+        <div class="numerology-form" id="mayaForm">
+          <h3>🌟 Maya Astrolojisi Analizi</h3>
+          <div class="form-row">
+            <div class="form-field">
+              <label for="mayaBirthDate">Doğum Tarihi</label>
+              <input type="date" id="mayaBirthDate" required />
+            </div>
+          </div>
+          <button
+            type="button"
+            class="numerology-submit"
+            onclick="submitMayaAstrology()"
+          >
+            Maya Kin Hesapla
+          </button>
+        </div>
       </div>
     </div>
 
@@ -1306,6 +1329,7 @@
       let unreadCounts = {
         genel: 0,
         numeroloji: 0,
+        "maya-astrolojisi": 0,
       };
 
       // Track last message timestamps per channel for seen
@@ -1509,14 +1533,24 @@
         }
       }
 
-      // Show/hide numerology form based on channel
+      // Show/hide forms based on channel
       function toggleNumerologyForm() {
+        const numerologyForm = document.getElementById("numerologyForm");
+        const mayaForm = document.getElementById("mayaForm");
+
         if (currentChannel === "numeroloji") {
           numerologyForm.classList.add("show");
+          mayaForm.classList.remove("show");
           messageInput.placeholder =
             "#numeroloji kanalına mesaj gönder veya yukarıdan analiz yapın";
+        } else if (currentChannel === "maya-astrolojisi") {
+          numerologyForm.classList.remove("show");
+          mayaForm.classList.add("show");
+          messageInput.placeholder =
+            "#maya-astrolojisi kanalına mesaj gönder veya yukarıdan analiz yapın";
         } else {
           numerologyForm.classList.remove("show");
+          mayaForm.classList.remove("show");
           messageInput.placeholder = `#${currentChannel} kanalına mesaj gönder`;
         }
       }
@@ -1681,6 +1715,90 @@
           .finally(() => {
             submitBtn.disabled = false;
             submitBtn.textContent = "Analiz Et";
+          });
+      }
+
+      // Maya Astrology form functionality
+      function submitMayaAstrology() {
+        const birthDate = document.getElementById("mayaBirthDate").value;
+        const submitBtn = document.querySelector(
+          "#mayaForm .numerology-submit"
+        );
+
+        if (!birthDate) {
+          Swal.fire({
+            icon: "error",
+            title: "Eksik Bilgi",
+            text: "Lütfen doğum tarihi bilgisini girin.",
+            confirmButtonText: "Tamam",
+          });
+          return;
+        }
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Hesaplanıyor...";
+
+        const requestData = {
+          birth_date: birthDate,
+        };
+
+        fetch("/api/maya-astrology", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(requestData),
+        })
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+          })
+          .then((data) => {
+            console.log("Maya Astrology API response:", data);
+
+            // Create maya astrology message
+            const mayaMessage = {
+              username: username,
+              message: `${birthDate} doğumlu kişi için Maya Astrolojisi analizi yapıldı`,
+              timestamp: new Date().toISOString(),
+              channel: currentChannel,
+              type: "maya-astrology",
+              mayaData: data,
+            };
+
+            console.log("Sending maya astrology message:", mayaMessage);
+
+            if (ws && ws.readyState === WebSocket.OPEN) {
+              ws.send(JSON.stringify(mayaMessage));
+            }
+
+            // Clear form
+            document.getElementById("mayaBirthDate").value = "";
+
+            Swal.fire({
+              icon: "success",
+              title: "Analiz Tamamlandı",
+              text: "Maya Astrolojisi analizi başarıyla oluşturuldu.",
+              timer: 2000,
+              showConfirmButton: false,
+              toast: true,
+              position: "top-end",
+            });
+          })
+          .catch((error) => {
+            console.error("Maya Astrology API error:", error);
+            Swal.fire({
+              icon: "error",
+              title: "Analiz Hatası",
+              text: "Maya Astrolojisi analizi yapılırken bir hata oluştu. Lütfen tekrar deneyin.",
+              confirmButtonText: "Tamam",
+            });
+          })
+          .finally(() => {
+            submitBtn.disabled = false;
+            submitBtn.textContent = "Maya Kin Hesapla";
           });
       }
 
@@ -1893,6 +2011,61 @@
                   <button class="reply-btn" onclick="startReply('${messageId}', '${escapeHtml(
               data.username
             )}', 'Numeroloji analizi', 'numerology')">Yanıtla</button>
+                </div>
+              </div>
+            `;
+          } else if (data.type === "maya-astrology" && data.mayaData) {
+            console.log("Displaying maya astrology message:", data);
+
+            const mayaData = data.mayaData;
+            let mayaContent = `
+              <div class="api-response">
+                <h4>🌟 Maya Astrolojisi Analizi</h4>
+                <div class="result-item">
+                  <div class="result-number">Kin Numarası: ${
+                    mayaData.kin_number
+                  }</div>
+                  <div class="result-text">260 günlük Tzolk'in döngüsündeki pozisyon</div>
+                </div>
+                <div class="result-item">
+                  <div class="result-number">Gün Burcu (Nahual): ${
+                    mayaData.day_sign
+                  }</div>
+                  <div class="result-text">${escapeHtml(
+                    mayaData.day_sign_description
+                  )}</div>
+                </div>
+                <div class="result-item">
+                  <div class="result-number">Galaktik Ton: ${
+                    mayaData.tone
+                  }</div>
+                  <div class="result-text">${escapeHtml(
+                    mayaData.tone_description
+                  )}</div>
+                </div>
+                <div class="result-item">
+                  <div class="result-number">📅 Analiz Tarihi:</div>
+                  <div class="result-text">${mayaData.gregorian_date}</div>
+                </div>
+              </div>
+            `;
+
+            messageContent = `
+              <div class="message-avatar">🌟</div>
+              <div class="message-content">
+                <div class="message-header">
+                  <span class="message-author">${escapeHtml(
+                    data.username
+                  )}</span>
+                  <span class="message-timestamp">${timeString}</span>
+                </div>
+                ${replyContent}
+                ${mayaContent}
+                <div class="seen-info" data-msgkey="${msgKey}"></div>
+                <div class="message-actions">
+                  <button class="reply-btn" onclick="startReply('${messageId}', '${escapeHtml(
+              data.username
+            )}', 'Maya Astrolojisi analizi', 'maya-astrology')">Yanıtla</button>
                 </div>
               </div>
             `;
@@ -2770,6 +2943,7 @@
       });
 
       // Make functions global for onclick handlers
+      window.submitMayaAstrology = submitMayaAstrology;
       window.startReply = startReply;
       window.cancelReply = cancelReply;
       window.submitNumerology = submitNumerology;
@@ -3502,5 +3676,7 @@
         return colorMap[number] || "color-crystal";
       }
     </script>
+  </body>
+</html>
   </body>
 </html>

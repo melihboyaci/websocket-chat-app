@@ -21,17 +21,18 @@ import (
 
 // Message represents a chat message
 type Message struct {
-	Username     string     `json:"username"`
-	Message      string     `json:"message"`
-	Timestamp    time.Time  `json:"timestamp"`
-	Channel      string     `json:"channel"`
-	Type         string     `json:"type,omitempty"` // "text", "file", "image", "seen", "numerology"
-	FileURL      string     `json:"fileUrl,omitempty"`
-	FileName     string     `json:"fileName,omitempty"`
-	FileSize     int64      `json:"fileSize,omitempty"`
-	SeenBy       []string   `json:"seenBy,omitempty"` // Kullanıcı adları
-	ReplyTo      *ReplyInfo `json:"replyTo,omitempty"` // Yanıtlanan mesaj bilgisi
+	Username       string      `json:"username"`
+	Message        string      `json:"message"`
+	Timestamp      time.Time   `json:"timestamp"`
+	Channel        string      `json:"channel"`
+	Type           string      `json:"type,omitempty"` // "text", "file", "image", "seen", "numerology", "maya-astrology"
+	FileURL        string      `json:"fileUrl,omitempty"`
+	FileName       string      `json:"fileName,omitempty"`
+	FileSize       int64       `json:"fileSize,omitempty"`
+	SeenBy         []string    `json:"seenBy,omitempty"`         // Kullanıcı adları
+	ReplyTo        *ReplyInfo  `json:"replyTo,omitempty"`        // Yanıtlanan mesaj bilgisi
 	NumerologyData interface{} `json:"numerologyData,omitempty"` // Numeroloji API sonucu
+	MayaData       interface{} `json:"mayaData,omitempty"`       // Maya Astrolojisi API sonucu
 }
 
 // ReplyInfo contains information about the message being replied to
@@ -621,6 +622,11 @@ func main() {
 		handleNumerologyProxy(w, r)
 	})
 
+	// Maya Astrology API proxy endpoint
+	http.HandleFunc("/api/maya-astrology", func(w http.ResponseWriter, r *http.Request) {
+		handleMayaAstrologyProxy(w, r)
+	})
+
 	// Container içinde HTTP modunda çalış (Nginx SSL termination yapar)
 	log.Printf("HTTP sohbet sunucusu :80 portunda başlatıldı...")
 	err := http.ListenAndServe(":80", nil)
@@ -687,6 +693,77 @@ func handleNumerologyProxy(w http.ResponseWriter, r *http.Request) {
 	w.Write(respBody)
 
 	log.Printf("Numerology API request completed with status: %d", resp.StatusCode)
+}
+
+// handleMayaAstrologyProxy proxies requests to the Maya Astrology API
+func handleMayaAstrologyProxy(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// CORS headers
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "POST")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+
+	// Read request body
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		log.Printf("Maya Astrology API request body read error: %v", err)
+		http.Error(w, "Error reading request", http.StatusBadRequest)
+		return
+	}
+
+	// Parse the request to get birth_date
+	var requestData map[string]interface{}
+	if err := json.Unmarshal(body, &requestData); err != nil {
+		log.Printf("Maya Astrology API request parse error: %v", err)
+		http.Error(w, "Error parsing request", http.StatusBadRequest)
+		return
+	}
+
+	birthDate, exists := requestData["birth_date"]
+	if !exists {
+		http.Error(w, "birth_date is required", http.StatusBadRequest)
+		return
+	}
+
+	// Create request to Maya Astrology API - Maya API'sini local port'ta çalıştırıyoruz
+	mayaURL := fmt.Sprintf("http://localhost:8001/kin-hesapla?birth_date=%s", birthDate)
+	req, err := http.NewRequest("GET", mayaURL, nil)
+	if err != nil {
+		log.Printf("Maya Astrology API request creation error: %v", err)
+		http.Error(w, "Error creating request", http.StatusInternalServerError)
+		return
+	}
+
+	// Make request
+	client := &http.Client{Timeout: 30 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Printf("Maya Astrology API request error: %v", err)
+		http.Error(w, "Error calling Maya Astrology API", http.StatusServiceUnavailable)
+		return
+	}
+	defer resp.Body.Close()
+
+	// Read response
+	respBody, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Printf("Maya Astrology API response read error: %v", err)
+		http.Error(w, "Error reading API response", http.StatusInternalServerError)
+		return
+	}
+
+	// Set response headers
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(resp.StatusCode)
+
+	// Write response
+	w.Write(respBody)
+
+	log.Printf("Maya Astrology API request completed with status: %d", resp.StatusCode)
 }
 
 func handleFileUpload(hub *Hub, w http.ResponseWriter, r *http.Request) {
