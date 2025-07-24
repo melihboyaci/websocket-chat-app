@@ -1116,7 +1116,9 @@
           <div class="channel" data-channel="maya-astrolojisi">
             <span class="channel-icon">#</span>
             <span class="channel-name">maya-astrolojisi</span>
-            <span class="notification-badge" data-channel="maya-astrolojisi">0</span>
+            <span class="notification-badge" data-channel="maya-astrolojisi"
+              >0</span
+            >
           </div>
         </div>
 
@@ -2019,56 +2021,63 @@
 
             const mayaData = data.mayaData;
             let mayaContent = `
-              <div class="api-response">
-                <h4>🌟 Maya Astrolojisi Analizi</h4>
-                <div class="result-item">
-                  <div class="result-number">Kin Numarası: ${
-                    mayaData.kin_number
-                  }</div>
-                  <div class="result-text">260 günlük Tzolk'in döngüsündeki pozisyon</div>
-                </div>
-                <div class="result-item">
-                  <div class="result-number">Gün Burcu (Nahual): ${
-                    mayaData.day_sign
-                  }</div>
-                  <div class="result-text">${escapeHtml(
-                    mayaData.day_sign_description
-                  )}</div>
-                </div>
-                <div class="result-item">
-                  <div class="result-number">Galaktik Ton: ${
-                    mayaData.tone
-                  }</div>
-                  <div class="result-text">${escapeHtml(
-                    mayaData.tone_description
-                  )}</div>
-                </div>
-                <div class="result-item">
-                  <div class="result-number">📅 Analiz Tarihi:</div>
-                  <div class="result-text">${mayaData.gregorian_date}</div>
-                </div>
+            <div class="api-response">
+              <h4>🌟 Maya Astrolojisi Analizi</h4>
+              <div class="result-item">
+                <div class="result-number">Kin Numarası: ${
+                  mayaData.kin_number
+                }</div>
+                <div class="result-text">260 günlük Tzolk'in döngüsündeki pozisyon</div>
               </div>
-            `;
+              <div class="result-item">
+                <div class="result-number">Gün Burcu (Nahual): ${
+                  mayaData.day_sign
+                }</div>
+                <div class="result-text">${escapeHtml(
+                  mayaData.day_sign_description
+                )}</div>
+              </div>
+              <div class="result-item">
+                <div class="result-number">Galaktik Ton: ${mayaData.tone}</div>
+                <div class="result-text">${escapeHtml(
+                  mayaData.tone_description
+                )}</div>
+              </div>
+              <div class="result-item">
+                <div class="result-number">📅 Analiz Tarihi:</div>
+                <div class="result-text">${mayaData.gregorian_date}</div>
+              </div>`;
+
+            // AI yorumu varsa ekle
+            if (mayaData.ai_interpretation) {
+              mayaContent += `
+              <div class="result-item">
+                <div class="result-number">🤖 AI Yorumu:</div>
+                <div class="result-text" style="white-space: pre-line;">${escapeHtml(
+                  mayaData.ai_interpretation
+                )}</div>
+              </div>`;
+            }
+
+            mayaContent += `</div>`;
 
             messageContent = `
-              <div class="message-avatar">🌟</div>
-              <div class="message-content">
-                <div class="message-header">
-                  <span class="message-author">${escapeHtml(
-                    data.username
-                  )}</span>
-                  <span class="message-timestamp">${timeString}</span>
-                </div>
-                ${replyContent}
-                ${mayaContent}
-                <div class="seen-info" data-msgkey="${msgKey}"></div>
-                <div class="message-actions">
-                  <button class="reply-btn" onclick="startReply('${messageId}', '${escapeHtml(
+            <div class="message-avatar">🌟</div>
+            <div class="message-content">
+              <div class="message-header">
+                <span class="message-author">${escapeHtml(data.username)}</span>
+                <span class="message-timestamp">${timeString}</span>
+              </div>
+              ${replyContent}
+              ${mayaContent}
+              <div class="seen-info" data-msgkey="${msgKey}"></div>
+              <div class="message-actions">
+                <button class="reply-btn" onclick="startReply('${messageId}', '${escapeHtml(
               data.username
             )}', 'Maya Astrolojisi analizi', 'maya-astrology')">Yanıtla</button>
-                </div>
               </div>
-            `;
+            </div>
+          `;
           } else if (data.type === "file" || data.type === "image") {
             let fileContent = "";
 
@@ -3676,7 +3685,5 @@
         return colorMap[number] || "color-crystal";
       }
     </script>
-  </body>
-</html>
   </body>
 </html>

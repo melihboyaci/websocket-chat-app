@@ -5,7 +5,7 @@ A real-time chat application built with Go backend and vanilla JavaScript fronte
 ## Features
 
 - 🚀 Real-time messaging with WebSocket connections
-- 💬 Multiple chat channels (genel, numeroloji)
+- 💬 Multiple chat channels (genel, numeroloji, maya-astrolojisi)
 - 👤 User authentication with custom usernames
 - 🎨 Discord-inspired modern UI design
 - 🔄 Automatic reconnection on connection loss
@@ -16,6 +16,7 @@ A real-time chat application built with Go backend and vanilla JavaScript fronte
 - 🔊 Customizable notification sounds
 - 💬 Reply to messages functionality
 - 🔮 Numerology analysis integration with color visualization
+- 🌟 Maya Astrology integration with AI-powered interpretations
 - 📊 Redis message persistence
 
 ## Technology Stack
@@ -24,7 +25,7 @@ A real-time chat application built with Go backend and vanilla JavaScript fronte
 - **Frontend**: HTML5, CSS3, Vanilla JavaScript
 - **WebSocket**: Real-time bidirectional communication
 - **Database**: Redis for message persistence
-- **API Integration**: Numerology API service
+- **API Integration**: Numerology API service, Maya Astrology API service
 - **Containerization**: Docker & Docker Compose
 - **Reverse Proxy**: Nginx for SSL termination
 
@@ -114,14 +115,22 @@ websocket-chat-app/
    - Results are shared in the channel with color-coded aura display
    - Aura colors are visually represented with actual color styling
 
-5. **User Interface**
+5. **Maya Astrology Analysis**
+
+   - Switch to #maya-astrolojisi channel
+   - Fill in the form with birth date
+   - Click "Maya Kin Hesapla" to get Maya astrology reading
+   - Results are shared in the channel with detailed interpretations
+   - AI-powered life guidance and spiritual insights included
+
+6. **User Interface**
 
    - Server list on the left (Discord-style)
    - Channel list in the middle sidebar
    - Main chat area with message history
    - User panel at the bottom of sidebar with logout option
 
-6. **Logout**
+7. **Logout**
    - Click "Çıkış Yap" button to logout and clear saved username and user ID
    - This will remove your credentials from browser storage
    - You'll need to enter your username again on next visit
