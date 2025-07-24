@@ -729,8 +729,8 @@ func handleMayaAstrologyProxy(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Create request to Maya Astrology API - Maya API'sini local port'ta çalıştırıyoruz
-	mayaURL := fmt.Sprintf("http://localhost:8001/kin-hesapla?birth_date=%s", birthDate)
+	// Create request to Maya Astrology API - Container adını kullan
+	mayaURL := fmt.Sprintf("http://mayan-astrology-api:8001/kin-hesapla?birth_date=%s", birthDate)
 	req, err := http.NewRequest("GET", mayaURL, nil)
 	if err != nil {
 		log.Printf("Maya Astrology API request creation error: %v", err)
